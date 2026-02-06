@@ -3,9 +3,876 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestion Stock Câbles - Magasin</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Gestion Stock Câbles Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* === RESET & BASE === */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #0066FF;
+            --primary-dark: #0052CC;
+            --secondary: #00D4AA;
+            --accent: #FF6B00;
+            --bg-dark: #0A0E1A;
+            --bg-card: #1A1D29;
+            --text-primary: #FFFFFF;
+            --text-secondary: #B4B8C5;
+            --border: #2D3142;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --shadow: rgba(0, 0, 0, 0.5);
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            cursor: none;
+        }
+
+        body.light-theme {
+            --bg-dark: #F3F4F6;
+            --bg-card: #FFFFFF;
+            --text-primary: #1A1D29;
+            --text-secondary: #6B7280;
+            --border: #E5E7EB;
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+
+        /* === CUSTOM CURSOR === */
+        .cursor {
+            width: 8px;
+            height: 8px;
+            background: var(--primary);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            mix-blend-mode: difference;
+        }
+
+        .cursor-follower {
+            width: 32px;
+            height: 32px;
+            border: 2px solid var(--primary);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9998;
+            transition: transform 0.15s ease, opacity 0.15s ease;
+            opacity: 0.5;
+        }
+
+        .cursor-follower.expand {
+            transform: scale(1.5) !important;
+            opacity: 0.8;
+        }
+
+        /* === PARTICLES CANVAS === */
+        #particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.4;
+        }
+
+        /* === LOGIN VIEW === */
+        .login-view {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .login-container {
+            background: var(--bg-card);
+            border-radius: 24px;
+            padding: 3rem;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: 0 25px 70px var(--shadow);
+            animation: slideIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid var(--border);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(40px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .login-logo {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .login-logo-icon {
+            width: 90px;
+            height: 90px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 12px 30px rgba(0, 102, 255, 0.4);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .login-logo h1 {
+            font-family: 'Space Mono', monospace;
+            font-size: 2rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .login-logo p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.6rem;
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            background: var(--bg-dark);
+            border: 2px solid var(--border);
+            border-radius: 14px;
+            font-size: 1rem;
+            font-family: 'Outfit', sans-serif;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(0, 102, 255, 0.15);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 1.1rem;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1.5rem;
+            box-shadow: 0 8px 20px rgba(0, 102, 255, 0.3);
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(0, 102, 255, 0.4);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            display: none;
+            font-size: 0.95rem;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .error-message.show {
+            display: block;
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        /* === APP VIEW === */
+        .app-view {
+            display: none;
+            position: relative;
+            z-index: 1;
+        }
+
+        .app-view.active {
+            display: block;
+        }
+
+        .app-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        /* === HEADER === */
+        .main-header {
+            padding: 1.5rem 0;
+            border-bottom: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(10, 14, 26, 0.8);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 102, 255, 0.3);
+        }
+
+        .logo-text h1 {
+            font-family: 'Space Mono', monospace;
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .logo-text p {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .clock-display {
+            font-family: 'Space Mono', monospace;
+            font-size: 1.1rem;
+            padding: 0.5rem 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--primary);
+        }
+
+        .icon-btn {
+            width: 44px;
+            height: 44px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 1.3rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .icon-btn:hover {
+            background: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 102, 255, 0.3);
+        }
+
+        .logout-btn:hover {
+            background: var(--danger);
+        }
+
+        /* === NAVIGATION === */
+        .main-nav {
+            padding: 1.5rem 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 0.5rem;
+            background: var(--bg-card);
+            padding: 0.4rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .nav-tab {
+            padding: 0.7rem 1.5rem;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .nav-tab:hover {
+            color: var(--text-primary);
+            background: rgba(0, 102, 255, 0.1);
+        }
+
+        .nav-tab.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 102, 255, 0.3);
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .action-btn {
+            padding: 0.7rem 1.5rem;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .action-btn.primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 102, 255, 0.3);
+        }
+
+        .action-btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 102, 255, 0.4);
+        }
+
+        .action-btn.secondary {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .action-btn.secondary:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* === SEARCH === */
+        .search-section {
+            padding: 1rem 0 2rem;
+        }
+
+        .search-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .search-container input {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: 14px;
+            font-size: 1rem;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        .search-container input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(0, 102, 255, 0.15);
+        }
+
+        /* === MAIN CONTENT === */
+        .main-content {
+            padding-bottom: 3rem;
+        }
+
+        .stock-view, .stats-view {
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        #stockContainer {
+            display: grid;
+            gap: 2rem;
+        }
+
+        .range-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px var(--shadow);
+            transition: all 0.3s ease;
+        }
+
+        .range-section:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px var(--shadow);
+        }
+
+        .range-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .range-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary);
+            font-family: 'Space Mono', monospace;
+        }
+
+        .range-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .range-btn {
+            padding: 0.5rem 1rem;
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .range-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .range-btn.delete:hover {
+            background: var(--danger);
+            border-color: var(--danger);
+        }
+
+        .touret-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+        }
+
+        .touret-item {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .touret-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .touret-item:hover::before {
+            transform: scaleX(1);
+        }
+
+        .touret-item:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px var(--shadow);
+            border-color: var(--primary);
+        }
+
+        .touret-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .touret-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            flex: 1;
+        }
+
+        .touret-actions {
+            display: flex;
+            gap: 0.4rem;
+        }
+
+        .touret-btn {
+            width: 32px;
+            height: 32px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        .touret-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .touret-btn.edit:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .touret-btn.delete:hover {
+            background: var(--danger);
+            border-color: var(--danger);
+        }
+
+        .touret-image {
+            width: 100%;
+            height: 150px;
+            background: var(--bg-card);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            object-fit: cover;
+            border: 1px solid var(--border);
+        }
+
+        .touret-placeholder {
+            width: 100%;
+            height: 150px;
+            background: linear-gradient(135deg, rgba(0, 102, 255, 0.1), rgba(0, 212, 170, 0.1));
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            border: 1px solid var(--border);
+        }
+
+        /* === STATISTICS === */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+
+        .stat-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 40px var(--shadow);
+        }
+
+        .stat-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            font-family: 'Space Mono', monospace;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .stats-details {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+        }
+
+        .stats-details h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+        }
+
+        #faceDetails {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .face-detail {
+            padding: 1rem;
+            background: var(--bg-dark);
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+
+        .face-detail h4 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        /* === MODAL === */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.5);
+            animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid var(--border);
+        }
+
+        .modal-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        .modal-close {
+            width: 40px;
+            height: 40px;
+            background: transparent;
+            border: none;
+            font-size: 2rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+        }
+
+        .modal-close:hover {
+            background: var(--danger);
+            color: white;
+            transform: rotate(90deg);
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        .modal-footer {
+            padding: 1.5rem 2rem;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .btn-cancel, .btn-save {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .btn-cancel {
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-cancel:hover {
+            background: var(--danger);
+            color: white;
+            border-color: var(--danger);
+        }
+
+        .btn-save {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 102, 255, 0.3);
+        }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 102, 255, 0.4);
+        }
+
+        .image-preview {
+            margin-top: 1rem;
+            max-width: 100%;
+        }
+
+        .image-preview img {
+            max-width: 100%;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+
+        /* === RESPONSIVE === */
+        @media (max-width: 768px) {
+            .header-content, .main-nav {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .nav-tabs {
+                flex-wrap: wrap;
+            }
+
+            .touret-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .login-container {
+                padding: 2rem 1.5rem;
+            }
+        }
+
+        /* === ANIMATIONS === */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .loading {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+    </style>
 </head>
 <body>
     <!-- Custom Cursor -->
@@ -15,106 +882,120 @@
     <!-- Particles Canvas -->
     <canvas id="particles"></canvas>
 
-    <!-- Protection de sécurité -->
-    <script>
-        if (sessionStorage.getItem('authenticated') !== 'true') {
-            window.location.href = 'login.html';
-        }
-        
-        const loginTime = sessionStorage.getItem('loginTime');
-        const currentTime = new Date().getTime();
-        const eightHours = 8 * 60 * 60 * 1000;
-        
-        if (loginTime && (currentTime - loginTime) > eightHours) {
-            sessionStorage.removeItem('authenticated');
-            sessionStorage.removeItem('loginTime');
-            alert('Votre session a expiré. Veuillez vous reconnecter.');
-            window.location.href = 'login.html';
-        }
-    </script>
-    
-    <div class="app-container">
-        <!-- Header -->
-        <header class="main-header">
-            <div class="header-content">
-                <div class="logo-section">
-                    <div class="logo-icon">⚡</div>
-                    <div class="logo-text">
-                        <h1>Stock Câbles</h1>
-                        <p>Gestion des tourets</p>
-                    </div>
-                </div>
-                
-                <div class="header-controls">
-                    <div id="clock" class="clock-display">--:--:--</div>
-                    <button id="themeToggle" class="icon-btn">🌙</button>
-                    <button id="logoutBtn" class="icon-btn logout-btn" onclick="logout()">🚪</button>
-                </div>
+    <!-- LOGIN VIEW -->
+    <div class="login-view" id="loginView">
+        <div class="login-container">
+            <div class="login-logo">
+                <div class="login-logo-icon">⚡</div>
+                <h1>Stock Câbles Pro</h1>
+                <p>Connexion sécurisée</p>
             </div>
-        </header>
 
-        <!-- Navigation -->
-        <nav class="main-nav">
-            <div class="nav-tabs">
-                <button class="nav-tab active" data-face="P">Face P</button>
-                <button class="nav-tab" data-face="Q">Face Q</button>
-                <button class="nav-tab" id="statsTab">📊 Statistiques</button>
+            <div class="error-message" id="errorMessage">
+                Identifiant ou mot de passe incorrect
             </div>
-            
-            <div class="nav-actions">
-                <button id="addRangeBtn" class="action-btn primary">+ Ajouter Rangée</button>
-                <button id="exportBtn" class="action-btn secondary" onclick="exportToCSV()">📥 Export CSV</button>
-            </div>
-        </nav>
 
-        <!-- Search Bar -->
-        <div class="search-section">
-            <div class="search-container">
-                <input type="text" id="searchInput" placeholder="🔍 Rechercher un câble, touret, rangée..." onkeyup="filterMaterials()">
-            </div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Identifiant</label>
+                    <input type="text" id="username" class="form-input" placeholder="Votre identifiant" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Mot de passe</label>
+                    <input type="password" id="password" class="form-input" placeholder="Votre mot de passe" required>
+                </div>
+
+                <button type="submit" class="login-btn">Se connecter</button>
+            </form>
         </div>
-
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Stock View -->
-            <div id="stockView" class="stock-view">
-                <div id="stockContainer"></div>
-            </div>
-
-            <!-- Stats View -->
-            <div id="statsView" class="stats-view" style="display: none;">
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon">📦</div>
-                        <div class="stat-value" id="totalTourets">0</div>
-                        <div class="stat-label">Total Tourets</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">📊</div>
-                        <div class="stat-value" id="totalRanges">0</div>
-                        <div class="stat-label">Total Rangées</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">⚠️</div>
-                        <div class="stat-value" id="lowStock">0</div>
-                        <div class="stat-label">Stock Faible</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">🔄</div>
-                        <div class="stat-value" id="lastUpdate">--:--</div>
-                        <div class="stat-label">Dernière MAJ</div>
-                    </div>
-                </div>
-                
-                <div class="stats-details">
-                    <h3>Détails par Face</h3>
-                    <div id="faceDetails"></div>
-                </div>
-            </div>
-        </main>
     </div>
 
-    <!-- Modal pour éditer/ajouter -->
+    <!-- APP VIEW -->
+    <div class="app-view" id="appView">
+        <div class="app-container">
+            <!-- Header -->
+            <header class="main-header">
+                <div class="header-content">
+                    <div class="logo-section">
+                        <div class="logo-icon">⚡</div>
+                        <div class="logo-text">
+                            <h1>Stock Câbles</h1>
+                            <p>Gestion des tourets</p>
+                        </div>
+                    </div>
+                    
+                    <div class="header-controls">
+                        <div id="clock" class="clock-display">--:--:--</div>
+                        <button id="themeToggle" class="icon-btn">🌙</button>
+                        <button id="logoutBtn" class="icon-btn logout-btn">🚪</button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Navigation -->
+            <nav class="main-nav">
+                <div class="nav-tabs">
+                    <button class="nav-tab active" data-face="P">Face P</button>
+                    <button class="nav-tab" data-face="Q">Face Q</button>
+                    <button class="nav-tab" id="statsTab">📊 Statistiques</button>
+                </div>
+                
+                <div class="nav-actions">
+                    <button id="addRangeBtn" class="action-btn primary">+ Ajouter Rangée</button>
+                    <button id="exportBtn" class="action-btn secondary">📥 Export CSV</button>
+                </div>
+            </nav>
+
+            <!-- Search Bar -->
+            <div class="search-section">
+                <div class="search-container">
+                    <input type="text" id="searchInput" placeholder="🔍 Rechercher un câble, touret, rangée...">
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <main class="main-content">
+                <!-- Stock View -->
+                <div id="stockView" class="stock-view">
+                    <div id="stockContainer"></div>
+                </div>
+
+                <!-- Stats View -->
+                <div id="statsView" class="stats-view" style="display: none;">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">📦</div>
+                            <div class="stat-value" id="totalTourets">0</div>
+                            <div class="stat-label">Total Tourets</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">📊</div>
+                            <div class="stat-value" id="totalRanges">0</div>
+                            <div class="stat-label">Total Rangées</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">⚠️</div>
+                            <div class="stat-value" id="lowStock">0</div>
+                            <div class="stat-label">Stock Faible</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">🔄</div>
+                            <div class="stat-value" id="lastUpdate">--:--</div>
+                            <div class="stat-label">Dernière MAJ</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stats-details">
+                        <h3>Détails par Face</h3>
+                        <div id="faceDetails"></div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal -->
     <div id="editModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -139,50 +1020,501 @@
         </div>
     </div>
 
-    <!-- Fonction de déconnexion -->
-    <script>
-        function logout() {
+    <script type="module">
+        // ========================================
+        // FIREBASE INITIALIZATION
+        // ========================================
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+        import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyAiZIicItqSQ0kTaCnZu6xiJEgEt7l_nWw",
+            authDomain: "magasin-462fb.firebaseapp.com",
+            projectId: "magasin-462fb",
+            storageBucket: "magasin-462fb.firebasestorage.app",
+            messagingSenderId: "653350272436",
+            appId: "1:653350272436:web:0c5f7c9481d3d7c98586e1"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        // Make Firebase globally available
+        window.db = db;
+        window.firestoreCollection = collection;
+        window.firestoreDoc = doc;
+        window.firestoreGetDoc = getDoc;
+        window.firestoreGetDocs = getDocs;
+        window.firestoreSetDoc = setDoc;
+        window.firestoreUpdateDoc = updateDoc;
+        window.firestoreDeleteDoc = deleteDoc;
+        window.firestoreOnSnapshot = onSnapshot;
+
+        // ========================================
+        // AUTHENTICATION
+        // ========================================
+        const loginForm = document.getElementById('loginForm');
+        const loginView = document.getElementById('loginView');
+        const appView = document.getElementById('appView');
+        const errorMessage = document.getElementById('errorMessage');
+
+        // Check if already authenticated
+        if (sessionStorage.getItem('authenticated') === 'true') {
+            showApp();
+        }
+
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            // Credentials
+            if (username === 'benjamin' && password === 'magasin') {
+                sessionStorage.setItem('authenticated', 'true');
+                sessionStorage.setItem('loginTime', new Date().getTime());
+                showApp();
+            } else {
+                errorMessage.classList.add('show');
+                setTimeout(() => errorMessage.classList.remove('show'), 3000);
+                document.getElementById('password').value = '';
+            }
+        });
+
+        function showApp() {
+            loginView.style.display = 'none';
+            appView.classList.add('active');
+            initApp();
+        }
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', () => {
             if (confirm('Voulez-vous vraiment vous déconnecter ?')) {
-                sessionStorage.removeItem('authenticated');
-                sessionStorage.removeItem('loginTime');
-                window.location.href = 'login.html';
+                sessionStorage.clear();
+                location.reload();
+            }
+        });
+
+        // ========================================
+        // GLOBAL STATE
+        // ========================================
+        let currentFace = 'P';
+        let stockData = { P: {}, Q: {} };
+        let editContext = null;
+
+        // ========================================
+        // APP INITIALIZATION
+        // ========================================
+        function initApp() {
+            initClock();
+            initTheme();
+            initNavigation();
+            loadStockData();
+            initSearch();
+        }
+
+        // ========================================
+        // CLOCK
+        // ========================================
+        function initClock() {
+            function updateClock() {
+                const now = new Date();
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                const seconds = String(now.getSeconds()).padStart(2, '0');
+                document.getElementById('clock').textContent = `${hours}:${minutes}:${seconds}`;
+            }
+            updateClock();
+            setInterval(updateClock, 1000);
+        }
+
+        // ========================================
+        // THEME
+        // ========================================
+        function initTheme() {
+            const themeToggle = document.getElementById('themeToggle');
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            
+            if (savedTheme === 'light') {
+                document.body.classList.add('light-theme');
+                themeToggle.textContent = '☀️';
+            }
+
+            themeToggle.addEventListener('click', () => {
+                document.body.classList.toggle('light-theme');
+                const isLight = document.body.classList.contains('light-theme');
+                themeToggle.textContent = isLight ? '☀️' : '🌙';
+                localStorage.setItem('theme', isLight ? 'light' : 'dark');
+            });
+        }
+
+        // ========================================
+        // NAVIGATION
+        // ========================================
+        function initNavigation() {
+            const navTabs = document.querySelectorAll('.nav-tab[data-face]');
+            const statsTab = document.getElementById('statsTab');
+            const stockView = document.getElementById('stockView');
+            const statsView = document.getElementById('statsView');
+
+            navTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    navTabs.forEach(t => t.classList.remove('active'));
+                    statsTab.classList.remove('active');
+                    tab.classList.add('active');
+                    
+                    currentFace = tab.dataset.face;
+                    stockView.style.display = 'block';
+                    statsView.style.display = 'none';
+                    renderStock();
+                });
+            });
+
+            statsTab.addEventListener('click', () => {
+                navTabs.forEach(t => t.classList.remove('active'));
+                statsTab.classList.add('active');
+                
+                stockView.style.display = 'none';
+                statsView.style.display = 'block';
+                renderStats();
+            });
+
+            // Add Range Button
+            document.getElementById('addRangeBtn').addEventListener('click', addRange);
+            
+            // Export Button
+            document.getElementById('exportBtn').addEventListener('click', exportToCSV);
+        }
+
+        // ========================================
+        // FIRESTORE DATA
+        // ========================================
+        async function loadStockData() {
+            try {
+                const facesRef = window.firestoreCollection(window.db, 'faces');
+                const snapshot = await window.firestoreGetDocs(facesRef);
+                
+                stockData = { P: {}, Q: {} };
+                
+                snapshot.forEach(doc => {
+                    const face = doc.id;
+                    if (face === 'P' || face === 'Q') {
+                        stockData[face] = doc.data();
+                    }
+                });
+                
+                renderStock();
+            } catch (error) {
+                console.error('Erreur chargement:', error);
             }
         }
+
+        async function saveToFirestore() {
+            try {
+                for (const face of ['P', 'Q']) {
+                    const faceRef = window.firestoreDoc(window.db, 'faces', face);
+                    await window.firestoreSetDoc(faceRef, stockData[face]);
+                }
+            } catch (error) {
+                console.error('Erreur sauvegarde:', error);
+            }
+        }
+
+        // ========================================
+        // RENDER STOCK
+        // ========================================
+        function renderStock() {
+            const container = document.getElementById('stockContainer');
+            const data = stockData[currentFace] || {};
+            
+            container.innerHTML = '';
+            
+            const ranges = Object.keys(data).sort();
+            
+            if (ranges.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 4rem; color: var(--text-secondary);">
+                        <div style="font-size: 4rem; margin-bottom: 1rem;">📦</div>
+                        <h3>Aucune rangée pour la Face ${currentFace}</h3>
+                        <p style="margin-top: 0.5rem;">Cliquez sur "+ Ajouter Rangée" pour commencer</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            ranges.forEach(rangeName => {
+                const tourets = data[rangeName] || [];
+                const section = document.createElement('div');
+                section.className = 'range-section';
+                
+                section.innerHTML = `
+                    <div class="range-header">
+                        <h3 class="range-title">${rangeName}</h3>
+                        <div class="range-actions">
+                            <button class="range-btn" onclick="addTouret('${rangeName}')">+ Touret</button>
+                            <button class="range-btn" onclick="editRange('${rangeName}')">✏️ Éditer</button>
+                            <button class="range-btn delete" onclick="deleteRange('${rangeName}')">🗑️ Supprimer</button>
+                        </div>
+                    </div>
+                    <div class="touret-grid" id="grid-${rangeName}"></div>
+                `;
+                
+                container.appendChild(section);
+                
+                const grid = document.getElementById(`grid-${rangeName}`);
+                
+                if (tourets.length === 0) {
+                    grid.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 2rem;">Aucun touret dans cette rangée</p>';
+                } else {
+                    tourets.forEach((touret, index) => {
+                        const item = document.createElement('div');
+                        item.className = 'touret-item';
+                        
+                        item.innerHTML = `
+                            <div class="touret-header">
+                                <div class="touret-name">${touret.name}</div>
+                                <div class="touret-actions">
+                                    <button class="touret-btn edit" onclick="editTouret('${rangeName}', ${index})">✏️</button>
+                                    <button class="touret-btn delete" onclick="deleteTouret('${rangeName}', ${index})">🗑️</button>
+                                </div>
+                            </div>
+                            ${touret.image ? 
+                                `<img src="${touret.image}" class="touret-image" alt="${touret.name}">` :
+                                `<div class="touret-placeholder">📦</div>`
+                            }
+                        `;
+                        
+                        grid.appendChild(item);
+                    });
+                }
+            });
+        }
+
+        // ========================================
+        // CRUD OPERATIONS
+        // ========================================
+        window.addRange = async function() {
+            const name = prompt('Nom de la nouvelle rangée:');
+            if (!name) return;
+            
+            if (stockData[currentFace][name]) {
+                alert('Cette rangée existe déjà!');
+                return;
+            }
+            
+            stockData[currentFace][name] = [];
+            await saveToFirestore();
+            renderStock();
+        };
+
+        window.editRange = async function(oldName) {
+            const newName = prompt('Nouveau nom:', oldName);
+            if (!newName || newName === oldName) return;
+            
+            if (stockData[currentFace][newName]) {
+                alert('Ce nom existe déjà!');
+                return;
+            }
+            
+            stockData[currentFace][newName] = stockData[currentFace][oldName];
+            delete stockData[currentFace][oldName];
+            await saveToFirestore();
+            renderStock();
+        };
+
+        window.deleteRange = async function(name) {
+            if (!confirm(`Supprimer la rangée "${name}" et tous ses tourets?`)) return;
+            
+            delete stockData[currentFace][name];
+            await saveToFirestore();
+            renderStock();
+        };
+
+        window.addTouret = function(rangeName) {
+            editContext = { type: 'add', rangeName };
+            openModal('Ajouter un touret');
+        };
+
+        window.editTouret = function(rangeName, index) {
+            const touret = stockData[currentFace][rangeName][index];
+            editContext = { type: 'edit', rangeName, index };
+            
+            document.getElementById('editName').value = touret.name;
+            if (touret.image) {
+                document.getElementById('imagePreview').innerHTML = `<img src="${touret.image}" alt="Preview">`;
+            }
+            
+            openModal('Éditer le touret');
+        };
+
+        window.deleteTouret = async function(rangeName, index) {
+            const touret = stockData[currentFace][rangeName][index];
+            if (!confirm(`Supprimer "${touret.name}"?`)) return;
+            
+            stockData[currentFace][rangeName].splice(index, 1);
+            await saveToFirestore();
+            renderStock();
+        };
+
+        // ========================================
+        // MODAL
+        // ========================================
+        function openModal(title) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('editModal').classList.add('active');
+        }
+
+        window.closeModal = function() {
+            document.getElementById('editModal').classList.remove('active');
+            document.getElementById('editName').value = '';
+            document.getElementById('editImage').value = '';
+            document.getElementById('imagePreview').innerHTML = '';
+            editContext = null;
+        };
+
+        window.saveEdit = async function() {
+            const name = document.getElementById('editName').value.trim();
+            if (!name) {
+                alert('Le nom est requis!');
+                return;
+            }
+            
+            const imageFile = document.getElementById('editImage').files[0];
+            let imageData = null;
+            
+            if (imageFile) {
+                imageData = await fileToBase64(imageFile);
+            }
+            
+            if (editContext.type === 'add') {
+                const touret = { name };
+                if (imageData) touret.image = imageData;
+                stockData[currentFace][editContext.rangeName].push(touret);
+            } else {
+                stockData[currentFace][editContext.rangeName][editContext.index].name = name;
+                if (imageData) {
+                    stockData[currentFace][editContext.rangeName][editContext.index].image = imageData;
+                }
+            }
+            
+            await saveToFirestore();
+            closeModal();
+            renderStock();
+        };
+
+        function fileToBase64(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Image preview
+        document.getElementById('editImage').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const base64 = await fileToBase64(file);
+                document.getElementById('imagePreview').innerHTML = `<img src="${base64}" alt="Preview">`;
+            }
+        });
+
+        // ========================================
+        // SEARCH
+        // ========================================
+        function initSearch() {
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                const sections = document.querySelectorAll('.range-section');
+                
+                sections.forEach(section => {
+                    const rangeName = section.querySelector('.range-title').textContent.toLowerCase();
+                    const tourets = section.querySelectorAll('.touret-item');
+                    let hasMatch = rangeName.includes(query);
+                    
+                    tourets.forEach(touret => {
+                        const touretName = touret.querySelector('.touret-name').textContent.toLowerCase();
+                        const matches = touretName.includes(query);
+                        touret.style.display = query === '' || matches ? 'block' : 'none';
+                        if (matches) hasMatch = true;
+                    });
+                    
+                    section.style.display = query === '' || hasMatch ? 'block' : 'none';
+                });
+            });
+        }
+
+        // ========================================
+        // STATISTICS
+        // ========================================
+        function renderStats() {
+            let totalTourets = 0;
+            let totalRanges = 0;
+            
+            for (const face of ['P', 'Q']) {
+                const ranges = Object.keys(stockData[face] || {});
+                totalRanges += ranges.length;
+                ranges.forEach(range => {
+                    totalTourets += (stockData[face][range] || []).length;
+                });
+            }
+            
+            document.getElementById('totalTourets').textContent = totalTourets;
+            document.getElementById('totalRanges').textContent = totalRanges;
+            document.getElementById('lowStock').textContent = '0'; // Placeholder
+            
+            const now = new Date();
+            document.getElementById('lastUpdate').textContent = 
+                `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            
+            // Face details
+            const faceDetails = document.getElementById('faceDetails');
+            faceDetails.innerHTML = '';
+            
+            for (const face of ['P', 'Q']) {
+                const ranges = Object.keys(stockData[face] || {});
+                let faceTourets = 0;
+                ranges.forEach(range => {
+                    faceTourets += (stockData[face][range] || []).length;
+                });
+                
+                const detail = document.createElement('div');
+                detail.className = 'face-detail';
+                detail.innerHTML = `
+                    <h4>Face ${face}</h4>
+                    <p>Rangées: ${ranges.length}</p>
+                    <p>Tourets: ${faceTourets}</p>
+                `;
+                faceDetails.appendChild(detail);
+            }
+        }
+
+        // ========================================
+        // EXPORT CSV
+        // ========================================
+        window.exportToCSV = function() {
+            let csv = 'Face,Rangée,Touret\n';
+            
+            for (const face of ['P', 'Q']) {
+                const ranges = Object.keys(stockData[face] || {});
+                ranges.forEach(range => {
+                    const tourets = stockData[face][range] || [];
+                    tourets.forEach(touret => {
+                        csv += `${face},${range},${touret.name}\n`;
+                    });
+                });
+            }
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `stock-cables-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+        };
     </script>
 
-    <!-- Firebase SDK -->
-    <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-      import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
-      
-      const firebaseConfig = {
-        apiKey: "AIzaSyAiZIicItqSQ0kTaCnZu6xiJEgEt7l_nWw",
-        authDomain: "magasin-462fb.firebaseapp.com",
-        projectId: "magasin-462fb",
-        storageBucket: "magasin-462fb.firebasestorage.app",
-        messagingSenderId: "653350272436",
-        appId: "1:653350272436:web:0c5f7c9481d3d7c98586e1"
-      };
-      
-      const app = initializeApp(firebaseConfig);
-      const db = getFirestore(app);
-      
-      window.firebaseDB = db;
-      window.firestoreCollection = collection;
-      window.firestoreDoc = doc;
-      window.firestoreGetDoc = getDoc;
-      window.firestoreGetDocs = getDocs;
-      window.firestoreSetDoc = setDoc;
-      window.firestoreUpdateDoc = updateDoc;
-      window.firestoreDeleteDoc = deleteDoc;
-      window.firestoreOnSnapshot = onSnapshot;
-      
-      console.log("Firebase Firestore initialisé !");
-      
-      import('./script.js');
-    </script>
-
-    <!-- Cursor & Particles Script -->
+    <!-- Cursor & Particles -->
     <script>
         // Custom Cursor
         const cursor = document.querySelector('.cursor');
@@ -202,7 +1534,6 @@
 
             cursorX += (mouseX - cursorX) * speed;
             cursorY += (mouseY - cursorY) * speed;
-
             followerX += (mouseX - followerX) * followerSpeed;
             followerY += (mouseY - followerY) * followerSpeed;
 
@@ -211,24 +1542,24 @@
 
             requestAnimationFrame(animateCursor);
         }
-
         animateCursor();
 
         // Cursor hover effects
-        const hoverElements = document.querySelectorAll('button, a, input, .touret-item, .nav-tab, .action-btn');
-        hoverElements.forEach(el => {
-            el.addEventListener('mouseenter', () => {
+        document.addEventListener('mouseenter', (e) => {
+            if (e.target.matches('button, a, input, .touret-item, .nav-tab, .action-btn')) {
                 follower.classList.add('expand');
-            });
-            el.addEventListener('mouseleave', () => {
+            }
+        }, true);
+        
+        document.addEventListener('mouseleave', (e) => {
+            if (e.target.matches('button, a, input, .touret-item, .nav-tab, .action-btn')) {
                 follower.classList.remove('expand');
-            });
-        });
+            }
+        }, true);
 
         // Particles
         const canvas = document.getElementById('particles');
         const ctx = canvas.getContext('2d');
-
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
 
@@ -248,7 +1579,6 @@
             update() {
                 this.x += this.speedX;
                 this.y += this.speedY;
-
                 if (this.x > canvas.width) this.x = 0;
                 if (this.x < 0) this.x = canvas.width;
                 if (this.y > canvas.height) this.y = 0;
@@ -269,19 +1599,16 @@
 
         function animateParticles() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-
             particles.forEach(particle => {
                 particle.update();
                 particle.draw();
             });
 
-            // Connect particles
             particles.forEach((a, i) => {
                 particles.slice(i + 1).forEach(b => {
                     const dx = a.x - b.x;
                     const dy = a.y - b.y;
                     const distance = Math.sqrt(dx * dx + dy * dy);
-
                     if (distance < 120) {
                         ctx.strokeStyle = `rgba(0, 102, 255, ${0.15 * (1 - distance / 120)})`;
                         ctx.lineWidth = 0.5;
@@ -295,7 +1622,6 @@
 
             requestAnimationFrame(animateParticles);
         }
-
         animateParticles();
 
         window.addEventListener('resize', () => {
@@ -305,4 +1631,3 @@
     </script>
 </body>
 </html>
-// IDK BRO ITS MY FUCKING CODE AND IT WONT UPLOAD ON GITHUB
