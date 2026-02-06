@@ -1057,47 +1057,6 @@
         window.firestoreOnSnapshot = onSnapshot;
 
         // ========================================
-        // AUTHENTICATION
-        // ========================================
-        const loginForm = document.getElementById('loginForm');
-        const loginView = document.getElementById('loginView');
-        const appView = document.getElementById('appView');
-        const errorMessage = document.getElementById('errorMessage');
-
-        if (sessionStorage.getItem('authenticated') === 'true') {
-            showApp();
-        }
-
-        loginForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            
-            if (username === 'benjamin' && password === 'magasin') {
-                sessionStorage.setItem('authenticated', 'true');
-                sessionStorage.setItem('loginTime', new Date().getTime());
-                showApp();
-            } else {
-                errorMessage.classList.add('show');
-                setTimeout(() => errorMessage.classList.remove('show'), 3000);
-                document.getElementById('password').value = '';
-            }
-        });
-
-        function showApp() {
-            loginView.style.display = 'none';
-            appView.classList.add('active');
-            initApp();
-        }
-
-        document.getElementById('logoutBtn').addEventListener('click', () => {
-            if (confirm('Voulez-vous vraiment vous déconnecter ?')) {
-                sessionStorage.clear();
-                location.reload();
-            }
-        });
-
-        // ========================================
         // GLOBAL STATE
         // ========================================
         let currentFace = 'P';
@@ -1206,112 +1165,8 @@
         };
 
         // ========================================
-        // APP INITIALIZATION
+        // FIRESTORE SAVE FUNCTION
         // ========================================
-        function initApp() {
-            initClock();
-            initNavigation();
-            loadStockData();
-            initSearch();
-            initCursor();
-            initParticles();
-        }
-
-        // ========================================
-        // CLOCK
-        // ========================================
-        function initClock() {
-            function updateClock() {
-                const now = new Date();
-                const hours = String(now.getHours()).padStart(2, '0');
-                const minutes = String(now.getMinutes()).padStart(2, '0');
-                const seconds = String(now.getSeconds()).padStart(2, '0');
-                document.getElementById('clock').textContent = `${hours}:${minutes}:${seconds}`;
-            }
-            updateClock();
-            setInterval(updateClock, 1000);
-        }
-
-        // ========================================
-        // NAVIGATION
-        // ========================================
-        function initNavigation() {
-            const navTabs = document.querySelectorAll('.nav-tab[data-face]');
-            const statsTab = document.getElementById('statsTab');
-            const stockView = document.getElementById('stockView');
-            const statsView = document.getElementById('statsView');
-
-            navTabs.forEach(tab => {
-                tab.addEventListener('click', () => {
-                    navTabs.forEach(t => t.classList.remove('active'));
-                    statsTab.classList.remove('active');
-                    tab.classList.add('active');
-                    
-                    currentFace = tab.dataset.face;
-                    stockView.style.display = 'block';
-                    statsView.style.display = 'none';
-                    renderStock();
-                });
-            });
-
-            statsTab.addEventListener('click', () => {
-                navTabs.forEach(t => t.classList.remove('active'));
-                statsTab.classList.add('active');
-                
-                stockView.style.display = 'none';
-                statsView.style.display = 'block';
-                renderStats();
-            });
-
-            document.getElementById('addRangeBtn').addEventListener('click', addRange);
-            document.getElementById('exportBtn').addEventListener('click', exportToCSV);
-        }
-
-        // ========================================
-        // FIRESTORE DATA
-        // ========================================
-        async function loadStockData() {
-            try {
-                const docRefP = window.firestoreDoc(window.db, 'stock', 'P');
-                const docSnapP = await window.firestoreGetDoc(docRefP);
-                
-                const docRefQ = window.firestoreDoc(window.db, 'stock', 'Q');
-                const docSnapQ = await window.firestoreGetDoc(docRefQ);
-                
-                if (!docSnapP.exists() || !docSnapQ.exists()) {
-                    console.log("Base vide → création des données initiales");
-                    await window.firestoreSetDoc(window.firestoreDoc(window.db, 'stock', 'P'), initialData.P);
-                    await window.firestoreSetDoc(window.firestoreDoc(window.db, 'stock', 'Q'), initialData.Q);
-                    stockData = initialData;
-                } else {
-                    stockData.P = docSnapP.data();
-                    stockData.Q = docSnapQ.data();
-                }
-                
-                renderStock();
-                updateStats();
-                
-                window.firestoreOnSnapshot(window.firestoreDoc(window.db, 'stock', 'P'), (docSnap) => {
-                    if (docSnap.exists()) {
-                        stockData.P = docSnap.data();
-                        renderStock();
-                        updateStats();
-                    }
-                });
-
-                window.firestoreOnSnapshot(window.firestoreDoc(window.db, 'stock', 'Q'), (docSnap) => {
-                    if (docSnap.exists()) {
-                        stockData.Q = docSnap.data();
-                        renderStock();
-                        updateStats();
-                    }
-                });
-                
-            } catch (error) {
-                console.error('Erreur chargement:', error);
-            }
-        }
-
         async function saveToFirestore(face) {
             try {
                 await window.firestoreSetDoc(window.firestoreDoc(window.db, 'stock', face), stockData[face]);
@@ -1323,78 +1178,7 @@
         }
 
         // ========================================
-        // RENDER STOCK
-        // ========================================
-        function renderStock() {
-            const container = document.getElementById('stockContainer');
-            const face = stockData[currentFace];
-            
-            container.innerHTML = '';
-            
-            if (!face || !face.ranges || face.ranges.length === 0) {
-                container.innerHTML = `
-                    <div style="text-align: center; padding: 6rem; color: var(--medium-gray);">
-                        <div style="font-size: 5rem; margin-bottom: 2rem; opacity: 0.3;">📦</div>
-                        <h3 style="font-family: 'Orbitron', sans-serif; font-size: 2rem; text-transform: uppercase; letter-spacing: 0.1em;">Aucune Rangée</h3>
-                        <p style="margin-top: 1rem; font-size: 1rem;">Face ${currentFace}</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            face.ranges.forEach((range, rangeIndex) => {
-                const section = document.createElement('div');
-                section.className = 'range-section';
-                section.style.animationDelay = `${rangeIndex * 0.1}s`;
-                
-                section.innerHTML = `
-                    <div class="range-header">
-                        <h3 class="range-title">${range.name}</h3>
-                        <div class="range-actions">
-                            <button class="range-btn" onclick="addTouret(${rangeIndex})">+ Touret</button>
-                            <button class="range-btn" onclick="editRangeName(${rangeIndex})">✏️</button>
-                            <button class="range-btn" onclick="deleteRange(${rangeIndex})">🗑️</button>
-                        </div>
-                    </div>
-                    <div class="touret-grid" id="grid-${rangeIndex}"></div>
-                `;
-                
-                container.appendChild(section);
-                
-                const grid = document.getElementById(`grid-${rangeIndex}`);
-                
-                if (!range.tourets || range.tourets.length === 0) {
-                    grid.innerHTML = '<p style="color: var(--medium-gray); text-align: center; padding: 3rem; font-size: 0.9rem;">Aucun touret</p>';
-                } else {
-                    range.tourets.forEach((touret, index) => {
-                        const item = document.createElement('div');
-                        item.className = 'touret-item';
-                        
-                        const cableName = touret.cable || 'Vide';
-                        const displayLabel = touret.label ? `${touret.label} - ` : '';
-                        
-                        item.innerHTML = `
-                            <div class="touret-header">
-                                <div class="touret-name">${displayLabel}${cableName}</div>
-                                <div class="touret-actions">
-                                    <button class="touret-btn" onclick="editTouret(${rangeIndex}, ${index})">✏️</button>
-                                    <button class="touret-btn" onclick="deleteTouret(${rangeIndex}, ${index})">🗑️</button>
-                                </div>
-                            </div>
-                            ${touret.image ? 
-                                `<img src="${touret.image}" class="touret-image" alt="${cableName}">` :
-                                `<div class="touret-placeholder">📦</div>`
-                            }
-                        `;
-                        
-                        grid.appendChild(item);
-                    });
-                }
-            });
-        }
-
-        // ========================================
-        // CRUD OPERATIONS
+        // CRUD OPERATIONS - DÉFINIES GLOBALEMENT
         // ========================================
         window.addRange = async function() {
             const name = prompt('Nom de la nouvelle rangée:', `Rangée ${stockData[currentFace].ranges.length + 1}`);
@@ -1469,7 +1253,7 @@
         };
 
         // ========================================
-        // MODAL
+        // MODAL FUNCTIONS
         // ========================================
         function openModal(title) {
             document.getElementById('modalTitle').textContent = title;
@@ -1525,28 +1309,100 @@
         });
 
         // ========================================
-        // SEARCH
+        // EXPORT CSV
         // ========================================
-        function initSearch() {
-            const searchInput = document.getElementById('searchInput');
-            searchInput.addEventListener('input', (e) => {
-                const query = e.target.value.toLowerCase();
-                const sections = document.querySelectorAll('.range-section');
-                
-                sections.forEach(section => {
-                    const rangeName = section.querySelector('.range-title').textContent.toLowerCase();
-                    const tourets = section.querySelectorAll('.touret-item');
-                    let hasMatch = rangeName.includes(query);
-                    
-                    tourets.forEach(touret => {
-                        const touretName = touret.querySelector('.touret-name').textContent.toLowerCase();
-                        const matches = touretName.includes(query) || rangeName.includes(query);
-                        touret.style.display = query === '' || matches ? 'block' : 'none';
-                        if (matches) hasMatch = true;
+        window.exportToCSV = function() {
+            let csv = 'Face,Rangée,Touret,Câble,Image\n';
+            
+            for (const face of ['P', 'Q']) {
+                if (stockData[face] && stockData[face].ranges) {
+                    stockData[face].ranges.forEach(range => {
+                        range.tourets.forEach(touret => {
+                            const cable = (touret.cable || 'Vide').replace(/"/g, '""');
+                            const hasImage = touret.image ? 'Oui' : 'Non';
+                            csv += `"${face}","${range.name}","${touret.label}","${cable}","${hasImage}"\n`;
+                        });
                     });
-                    
-                    section.style.display = query === '' || hasMatch ? 'block' : 'none';
-                });
+                }
+            }
+            
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `stock-cables-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        };
+
+        // ========================================
+        // RENDER STOCK
+        // ========================================
+        function renderStock() {
+            const container = document.getElementById('stockContainer');
+            const face = stockData[currentFace];
+            
+            container.innerHTML = '';
+            
+            if (!face || !face.ranges || face.ranges.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 6rem; color: var(--medium-gray);">
+                        <div style="font-size: 5rem; margin-bottom: 2rem; opacity: 0.3;">📦</div>
+                        <h3 style="font-family: 'Orbitron', sans-serif; font-size: 2rem; text-transform: uppercase; letter-spacing: 0.1em;">Aucune Rangée</h3>
+                        <p style="margin-top: 1rem; font-size: 1rem;">Face ${currentFace}</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            face.ranges.forEach((range, rangeIndex) => {
+                const section = document.createElement('div');
+                section.className = 'range-section';
+                section.style.animationDelay = `${rangeIndex * 0.1}s`;
+                
+                section.innerHTML = `
+                    <div class="range-header">
+                        <h3 class="range-title">${range.name}</h3>
+                        <div class="range-actions">
+                            <button class="range-btn" onclick="addTouret(${rangeIndex})">+ Touret</button>
+                            <button class="range-btn" onclick="editRangeName(${rangeIndex})">✏️</button>
+                            <button class="range-btn" onclick="deleteRange(${rangeIndex})">🗑️</button>
+                        </div>
+                    </div>
+                    <div class="touret-grid" id="grid-${rangeIndex}"></div>
+                `;
+                
+                container.appendChild(section);
+                
+                const grid = document.getElementById(`grid-${rangeIndex}`);
+                
+                if (!range.tourets || range.tourets.length === 0) {
+                    grid.innerHTML = '<p style="color: var(--medium-gray); text-align: center; padding: 3rem; font-size: 0.9rem;">Aucun touret</p>';
+                } else {
+                    range.tourets.forEach((touret, index) => {
+                        const item = document.createElement('div');
+                        item.className = 'touret-item';
+                        
+                        const cableName = touret.cable || 'Vide';
+                        const displayLabel = touret.label ? `${touret.label} - ` : '';
+                        
+                        item.innerHTML = `
+                            <div class="touret-header">
+                                <div class="touret-name">${displayLabel}${cableName}</div>
+                                <div class="touret-actions">
+                                    <button class="touret-btn" onclick="editTouret(${rangeIndex}, ${index})">✏️</button>
+                                    <button class="touret-btn" onclick="deleteTouret(${rangeIndex}, ${index})">🗑️</button>
+                                </div>
+                            </div>
+                            ${touret.image ? 
+                                `<img src="${touret.image}" class="touret-image" alt="${cableName}">` :
+                                `<div class="touret-placeholder">📦</div>`
+                            }
+                        `;
+                        
+                        grid.appendChild(item);
+                    });
+                }
             });
         }
 
@@ -1607,31 +1463,179 @@
         }
 
         // ========================================
-        // EXPORT CSV
+        // AUTHENTICATION
         // ========================================
-        window.exportToCSV = function() {
-            let csv = 'Face,Rangée,Touret,Câble,Image\n';
+        const loginForm = document.getElementById('loginForm');
+        const loginView = document.getElementById('loginView');
+        const appView = document.getElementById('appView');
+        const errorMessage = document.getElementById('errorMessage');
+
+        if (sessionStorage.getItem('authenticated') === 'true') {
+            showApp();
+        }
+
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
             
-            for (const face of ['P', 'Q']) {
-                if (stockData[face] && stockData[face].ranges) {
-                    stockData[face].ranges.forEach(range => {
-                        range.tourets.forEach(touret => {
-                            const cable = (touret.cable || 'Vide').replace(/"/g, '""');
-                            const hasImage = touret.image ? 'Oui' : 'Non';
-                            csv += `"${face}","${range.name}","${touret.label}","${cable}","${hasImage}"\n`;
-                        });
-                    });
-                }
+            if (username === 'benjamin' && password === 'magasin') {
+                sessionStorage.setItem('authenticated', 'true');
+                sessionStorage.setItem('loginTime', new Date().getTime());
+                showApp();
+            } else {
+                errorMessage.classList.add('show');
+                setTimeout(() => errorMessage.classList.remove('show'), 3000);
+                document.getElementById('password').value = '';
             }
-            
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `stock-cables-${new Date().toISOString().split('T')[0]}.csv`;
-            a.click();
-            URL.revokeObjectURL(url);
-        };
+        });
+
+        function showApp() {
+            loginView.style.display = 'none';
+            appView.classList.add('active');
+            initApp();
+        }
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            if (confirm('Voulez-vous vraiment vous déconnecter ?')) {
+                sessionStorage.clear();
+                location.reload();
+            }
+        });
+
+        // ========================================
+        // APP INITIALIZATION
+        // ========================================
+        function initApp() {
+            initClock();
+            initNavigation();
+            loadStockData();
+            initSearch();
+            initCursor();
+            initParticles();
+        }
+
+        // ========================================
+        // CLOCK
+        // ========================================
+        function initClock() {
+            function updateClock() {
+                const now = new Date();
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                const seconds = String(now.getSeconds()).padStart(2, '0');
+                document.getElementById('clock').textContent = `${hours}:${minutes}:${seconds}`;
+            }
+            updateClock();
+            setInterval(updateClock, 1000);
+        }
+
+        // ========================================
+        // NAVIGATION
+        // ========================================
+        function initNavigation() {
+            const navTabs = document.querySelectorAll('.nav-tab[data-face]');
+            const statsTab = document.getElementById('statsTab');
+            const stockView = document.getElementById('stockView');
+            const statsView = document.getElementById('statsView');
+
+            navTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    navTabs.forEach(t => t.classList.remove('active'));
+                    statsTab.classList.remove('active');
+                    tab.classList.add('active');
+                    
+                    currentFace = tab.dataset.face;
+                    stockView.style.display = 'block';
+                    statsView.style.display = 'none';
+                    renderStock();
+                });
+            });
+
+            statsTab.addEventListener('click', () => {
+                navTabs.forEach(t => t.classList.remove('active'));
+                statsTab.classList.add('active');
+                
+                stockView.style.display = 'none';
+                statsView.style.display = 'block';
+                renderStats();
+            });
+
+            // Utilisation des fonctions globales définies plus haut
+            document.getElementById('addRangeBtn').addEventListener('click', window.addRange);
+            document.getElementById('exportBtn').addEventListener('click', window.exportToCSV);
+        }
+
+        // ========================================
+        // FIRESTORE DATA
+        // ========================================
+        async function loadStockData() {
+            try {
+                const docRefP = window.firestoreDoc(window.db, 'stock', 'P');
+                const docSnapP = await window.firestoreGetDoc(docRefP);
+                
+                const docRefQ = window.firestoreDoc(window.db, 'stock', 'Q');
+                const docSnapQ = await window.firestoreGetDoc(docRefQ);
+                
+                if (!docSnapP.exists() || !docSnapQ.exists()) {
+                    console.log("Base vide → création des données initiales");
+                    await window.firestoreSetDoc(window.firestoreDoc(window.db, 'stock', 'P'), initialData.P);
+                    await window.firestoreSetDoc(window.firestoreDoc(window.db, 'stock', 'Q'), initialData.Q);
+                    stockData = initialData;
+                } else {
+                    stockData.P = docSnapP.data();
+                    stockData.Q = docSnapQ.data();
+                }
+                
+                renderStock();
+                updateStats();
+                
+                window.firestoreOnSnapshot(window.firestoreDoc(window.db, 'stock', 'P'), (docSnap) => {
+                    if (docSnap.exists()) {
+                        stockData.P = docSnap.data();
+                        renderStock();
+                        updateStats();
+                    }
+                });
+
+                window.firestoreOnSnapshot(window.firestoreDoc(window.db, 'stock', 'Q'), (docSnap) => {
+                    if (docSnap.exists()) {
+                        stockData.Q = docSnap.data();
+                        renderStock();
+                        updateStats();
+                    }
+                });
+                
+            } catch (error) {
+                console.error('Erreur chargement:', error);
+            }
+        }
+
+        // ========================================
+        // SEARCH
+        // ========================================
+        function initSearch() {
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                const sections = document.querySelectorAll('.range-section');
+                
+                sections.forEach(section => {
+                    const rangeName = section.querySelector('.range-title').textContent.toLowerCase();
+                    const tourets = section.querySelectorAll('.touret-item');
+                    let hasMatch = rangeName.includes(query);
+                    
+                    tourets.forEach(touret => {
+                        const touretName = touret.querySelector('.touret-name').textContent.toLowerCase();
+                        const matches = touretName.includes(query) || rangeName.includes(query);
+                        touret.style.display = query === '' || matches ? 'block' : 'none';
+                        if (matches) hasMatch = true;
+                    });
+                    
+                    section.style.display = query === '' || hasMatch ? 'block' : 'none';
+                });
+            });
+        }
 
         // ========================================
         // CURSOR
