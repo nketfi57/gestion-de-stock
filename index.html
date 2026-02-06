@@ -3,56 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestion Stock Câbles Pro</title>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <title>Gestion Stock Câbles - RTE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@300;400;600&display=swap" rel="stylesheet">
     
     <style>
-        /* === RESET & BASE === */
+        /* === ROOT VARIABLES === */
+        :root {
+            --white: #ffffff;
+            --light-gray: #e5e5e5;
+            --medium-gray: #999999;
+            --dark-gray: #333333;
+            --black: #000000;
+            --bg-dark: #0a0a0a;
+        }
+
+        /* === RESET === */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        :root {
-            --primary: #0066FF;
-            --primary-dark: #0052CC;
-            --secondary: #00D4AA;
-            --accent: #FF6B00;
-            --bg-dark: #0A0E1A;
-            --bg-card: #1A1D29;
-            --text-primary: #FFFFFF;
-            --text-secondary: #B4B8C5;
-            --border: #2D3142;
-            --success: #10B981;
-            --warning: #F59E0B;
-            --danger: #EF4444;
-            --shadow: rgba(0, 0, 0, 0.5);
-        }
-
         body {
-            font-family: 'Outfit', sans-serif;
-            background: var(--bg-dark);
-            color: var(--text-primary);
-            min-height: 100vh;
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--black);
+            color: var(--white);
             overflow-x: hidden;
+            line-height: 1.8;
+            position: relative;
             cursor: none;
         }
 
-        body.light-theme {
-            --bg-dark: #F3F4F6;
-            --bg-card: #FFFFFF;
-            --text-primary: #1A1D29;
-            --text-secondary: #6B7280;
-            --border: #E5E7EB;
-            --shadow: rgba(0, 0, 0, 0.1);
+        /* === BACKGROUND EFFECTS === */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.02) 0%, transparent 50%),
+                radial-gradient(circle at 50% 20%, rgba(255, 255, 255, 0.025) 0%, transparent 50%),
+                linear-gradient(135deg, #000000 0%, #0a0a0a 50%, #000000 100%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                repeating-linear-gradient(
+                    45deg,
+                    transparent,
+                    transparent 100px,
+                    rgba(255, 255, 255, 0.01) 100px,
+                    rgba(255, 255, 255, 0.01) 101px
+                );
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .grid-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        #particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
         }
 
         /* === CUSTOM CURSOR === */
         .cursor {
             width: 8px;
             height: 8px;
-            background: var(--primary);
+            background: var(--white);
             border-radius: 50%;
             position: fixed;
             pointer-events: none;
@@ -63,7 +109,7 @@
         .cursor-follower {
             width: 32px;
             height: 32px;
-            border: 2px solid var(--primary);
+            border: 2px solid var(--white);
             border-radius: 50%;
             position: fixed;
             pointer-events: none;
@@ -77,153 +123,138 @@
             opacity: 0.8;
         }
 
-        /* === PARTICLES CANVAS === */
-        #particles {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            pointer-events: none;
-            opacity: 0.4;
-        }
-
         /* === LOGIN VIEW === */
         .login-view {
             display: flex;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            padding: 1rem;
+            padding: 2rem;
             position: relative;
-            z-index: 1;
+            z-index: 2;
         }
 
         .login-container {
-            background: var(--bg-card);
-            border-radius: 24px;
-            padding: 3rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--dark-gray);
+            padding: 4rem;
             width: 100%;
-            max-width: 480px;
-            box-shadow: 0 25px 70px var(--shadow);
-            animation: slideIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 1px solid var(--border);
+            max-width: 550px;
+            animation: slideUp 1s ease-out;
+            backdrop-filter: blur(10px);
+            position: relative;
         }
 
-        @keyframes slideIn {
-            from {
-                transform: translateY(40px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--white);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
         }
 
         .login-logo {
             text-align: center;
-            margin-bottom: 2.5rem;
-        }
-
-        .login-logo-icon {
-            width: 90px;
-            height: 90px;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            border-radius: 20px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 12px 30px rgba(0, 102, 255, 0.4);
-            animation: float 3s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+            margin-bottom: 3rem;
         }
 
         .login-logo h1 {
-            font-family: 'Space Mono', monospace;
-            font-size: 2rem;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 0.5rem;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
         }
 
         .login-logo p {
-            color: var(--text-secondary);
             font-size: 1rem;
+            color: var(--medium-gray);
+            font-weight: 300;
         }
 
         .form-group {
-            margin-bottom: 1.5rem;
+            margin-bottom: 2rem;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 0.6rem;
-            color: var(--text-primary);
+            margin-bottom: 0.8rem;
+            color: var(--white);
             font-weight: 600;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
         }
 
         .form-input {
             width: 100%;
-            padding: 1rem 1.25rem;
-            background: var(--bg-dark);
-            border: 2px solid var(--border);
-            border-radius: 14px;
+            padding: 1.2rem;
+            background: transparent;
+            border: 1px solid var(--dark-gray);
+            color: var(--white);
+            font-family: 'JetBrains Mono', monospace;
             font-size: 1rem;
-            font-family: 'Outfit', sans-serif;
-            color: var(--text-primary);
             transition: all 0.3s ease;
         }
 
         .form-input:focus {
             outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(0, 102, 255, 0.15);
+            border-color: var(--white);
+            box-shadow: 0 0 0 1px var(--white);
         }
 
         .login-btn {
             width: 100%;
-            padding: 1.1rem;
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            border: none;
-            border-radius: 14px;
-            font-size: 1.1rem;
+            padding: 1.2rem;
+            background: transparent;
+            color: var(--white);
+            border: 2px solid var(--white);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
             font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
             cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 1.5rem;
-            box-shadow: 0 8px 20px rgba(0, 102, 255, 0.3);
+            transition: all 0.4s ease;
+            margin-top: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--white);
+            transition: left 0.4s ease;
+            z-index: -1;
+        }
+
+        .login-btn:hover::before {
+            left: 0;
         }
 
         .login-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 30px rgba(0, 102, 255, 0.4);
-        }
-
-        .login-btn:active {
-            transform: translateY(0);
+            color: var(--black);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
         }
 
         .error-message {
-            background: rgba(239, 68, 68, 0.1);
-            color: var(--danger);
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 3px solid var(--white);
+            color: var(--white);
             padding: 1rem;
-            border-radius: 12px;
             margin-bottom: 1.5rem;
             display: none;
-            font-size: 0.95rem;
-            border: 1px solid rgba(239, 68, 68, 0.3);
+            font-size: 0.9rem;
         }
 
         .error-message.show {
@@ -231,38 +262,28 @@
             animation: shake 0.5s ease;
         }
 
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-10px); }
-            75% { transform: translateX(10px); }
-        }
-
         /* === APP VIEW === */
         .app-view {
             display: none;
             position: relative;
-            z-index: 1;
+            z-index: 2;
         }
 
         .app-view.active {
             display: block;
         }
 
-        .app-container {
+        .wrapper {
             max-width: 1600px;
             margin: 0 auto;
-            padding: 0 1rem;
+            padding: 0 2rem;
         }
 
         /* === HEADER === */
         .main-header {
-            padding: 1.5rem 0;
-            border-bottom: 1px solid var(--border);
-            backdrop-filter: blur(10px);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            background: rgba(10, 14, 26, 0.8);
+            padding: 3rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 3rem;
         }
 
         .header-content {
@@ -270,64 +291,45 @@
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 1rem;
+            gap: 2rem;
         }
 
-        .logo-section {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
+        .logo-section h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
         }
 
-        .logo-icon {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            box-shadow: 0 4px 12px rgba(0, 102, 255, 0.3);
-        }
-
-        .logo-text h1 {
-            font-family: 'Space Mono', monospace;
-            font-size: 1.5rem;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .logo-text p {
-            color: var(--text-secondary);
-            font-size: 0.85rem;
+        .logo-section p {
+            color: var(--medium-gray);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
         }
 
         .header-controls {
             display: flex;
             align-items: center;
-            gap: 1rem;
+            gap: 1.5rem;
         }
 
         .clock-display {
-            font-family: 'Space Mono', monospace;
-            font-size: 1.1rem;
-            padding: 0.5rem 1rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            color: var(--primary);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            padding: 0.8rem 1.5rem;
+            border: 1px solid var(--dark-gray);
+            background: rgba(255, 255, 255, 0.03);
         }
 
         .icon-btn {
-            width: 44px;
-            height: 44px;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            font-size: 1.3rem;
+            width: 50px;
+            height: 50px;
+            background: transparent;
+            border: 1px solid var(--dark-gray);
+            color: var(--white);
+            font-size: 1.2rem;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
@@ -336,235 +338,215 @@
         }
 
         .icon-btn:hover {
-            background: var(--primary);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 102, 255, 0.3);
-        }
-
-        .logout-btn:hover {
-            background: var(--danger);
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--white);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
         }
 
         /* === NAVIGATION === */
         .main-nav {
-            padding: 1.5rem 0;
+            padding: 2rem 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 1rem;
+            gap: 1.5rem;
         }
 
         .nav-tabs {
             display: flex;
-            gap: 0.5rem;
-            background: var(--bg-card);
-            padding: 0.4rem;
-            border-radius: 12px;
-            border: 1px solid var(--border);
+            gap: 1rem;
         }
 
         .nav-tab {
-            padding: 0.7rem 1.5rem;
+            padding: 1rem 2rem;
             background: transparent;
-            border: none;
-            border-radius: 8px;
-            color: var(--text-secondary);
+            border: 1px solid var(--dark-gray);
+            color: var(--medium-gray);
+            font-family: 'Orbitron', sans-serif;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-size: 0.9rem;
         }
 
         .nav-tab:hover {
-            color: var(--text-primary);
-            background: rgba(0, 102, 255, 0.1);
+            color: var(--white);
+            border-color: var(--white);
         }
 
         .nav-tab.active {
-            background: var(--primary);
-            color: white;
-            box-shadow: 0 4px 12px rgba(0, 102, 255, 0.3);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--white);
+            border-color: var(--white);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
         }
 
         .nav-actions {
             display: flex;
-            gap: 0.75rem;
+            gap: 1rem;
         }
 
         .action-btn {
-            padding: 0.7rem 1.5rem;
-            border: none;
-            border-radius: 10px;
-            font-weight: 600;
+            padding: 1rem 2rem;
+            background: transparent;
+            border: 2px solid var(--white);
+            color: var(--white);
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.95rem;
+            transition: all 0.4s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-size: 0.85rem;
+            position: relative;
+            overflow: hidden;
         }
 
-        .action-btn.primary {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            box-shadow: 0 4px 12px rgba(0, 102, 255, 0.3);
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--white);
+            transition: left 0.4s ease;
+            z-index: -1;
         }
 
-        .action-btn.primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(0, 102, 255, 0.4);
+        .action-btn:hover::before {
+            left: 0;
         }
 
-        .action-btn.secondary {
-            background: var(--bg-card);
-            color: var(--text-primary);
-            border: 1px solid var(--border);
-        }
-
-        .action-btn.secondary:hover {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
+        .action-btn:hover {
+            color: var(--black);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
         }
 
         /* === SEARCH === */
         .search-section {
-            padding: 1rem 0 2rem;
-        }
-
-        .search-container {
-            max-width: 600px;
-            margin: 0 auto;
+            padding: 2rem 0;
         }
 
         .search-container input {
             width: 100%;
-            padding: 1rem 1.5rem;
-            background: var(--bg-card);
-            border: 2px solid var(--border);
-            border-radius: 14px;
+            max-width: 700px;
+            margin: 0 auto;
+            display: block;
+            padding: 1.2rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--dark-gray);
+            color: var(--white);
+            font-family: 'JetBrains Mono', monospace;
             font-size: 1rem;
-            color: var(--text-primary);
             transition: all 0.3s ease;
         }
 
         .search-container input:focus {
             outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(0, 102, 255, 0.15);
+            border-color: var(--white);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
         }
 
-        /* === MAIN CONTENT === */
+        /* === STOCK VIEW === */
         .main-content {
-            padding-bottom: 3rem;
-        }
-
-        .stock-view, .stats-view {
-            animation: fadeIn 0.5s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            padding-bottom: 4rem;
         }
 
         #stockContainer {
             display: grid;
-            gap: 2rem;
+            gap: 3rem;
         }
 
         .range-section {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 20px var(--shadow);
-            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--dark-gray);
+            padding: 2.5rem;
+            position: relative;
+            transition: all 0.5s ease;
+            animation: slideUp 0.8s ease-out backwards;
+        }
+
+        .range-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 0;
+            background: var(--white);
+            transition: height 0.5s ease;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+        }
+
+        .range-section:hover::before {
+            height: 100%;
         }
 
         .range-section:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 30px var(--shadow);
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--white);
         }
 
         .range-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--border);
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .range-title {
-            font-size: 1.3rem;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
             font-weight: 700;
-            color: var(--primary);
-            font-family: 'Space Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
         }
 
         .range-actions {
             display: flex;
-            gap: 0.5rem;
+            gap: 0.8rem;
         }
 
         .range-btn {
-            padding: 0.5rem 1rem;
-            background: var(--bg-dark);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: var(--text-primary);
+            padding: 0.8rem 1.5rem;
+            background: transparent;
+            border: 1px solid var(--dark-gray);
+            color: var(--white);
+            font-family: 'JetBrains Mono', monospace;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
 
         .range-btn:hover {
-            background: var(--primary);
-            border-color: var(--primary);
-            transform: translateY(-2px);
-        }
-
-        .range-btn.delete:hover {
-            background: var(--danger);
-            border-color: var(--danger);
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--white);
         }
 
         .touret-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 1rem;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
         }
 
         .touret-item {
-            background: var(--bg-dark);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 1.25rem;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
             transition: all 0.3s ease;
             cursor: pointer;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .touret-item::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
-            transform: scaleX(0);
-            transition: transform 0.3s ease;
-        }
-
-        .touret-item:hover::before {
-            transform: scaleX(1);
         }
 
         .touret-item:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px var(--shadow);
-            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--white);
+            transform: translateX(10px);
         }
 
         .touret-header {
@@ -575,148 +557,137 @@
         }
 
         .touret-name {
+            font-family: 'Orbitron', sans-serif;
             font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--text-primary);
+            font-weight: 600;
             flex: 1;
         }
 
         .touret-actions {
             display: flex;
-            gap: 0.4rem;
+            gap: 0.5rem;
         }
 
         .touret-btn {
-            width: 32px;
-            height: 32px;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 6px;
+            width: 35px;
+            height: 35px;
+            background: transparent;
+            border: 1px solid var(--dark-gray);
+            color: var(--white);
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1rem;
+            font-size: 0.9rem;
         }
 
         .touret-btn:hover {
-            transform: scale(1.1);
-        }
-
-        .touret-btn.edit:hover {
-            background: var(--primary);
-            border-color: var(--primary);
-        }
-
-        .touret-btn.delete:hover {
-            background: var(--danger);
-            border-color: var(--danger);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--white);
         }
 
         .touret-image {
             width: 100%;
-            height: 150px;
-            background: var(--bg-card);
-            border-radius: 8px;
+            height: 180px;
+            background: rgba(255, 255, 255, 0.05);
             margin-bottom: 1rem;
             object-fit: cover;
-            border: 1px solid var(--border);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .touret-placeholder {
             width: 100%;
-            height: 150px;
-            background: linear-gradient(135deg, rgba(0, 102, 255, 0.1), rgba(0, 212, 170, 0.1));
-            border-radius: 8px;
+            height: 180px;
+            background: rgba(255, 255, 255, 0.02);
             margin-bottom: 1rem;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 3rem;
-            border: 1px solid var(--border);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         /* === STATISTICS === */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
         }
 
         .stat-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 2rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--dark-gray);
+            padding: 2.5rem;
             text-align: center;
             transition: all 0.3s ease;
             position: relative;
-            overflow: hidden;
         }
 
         .stat-card::before {
             content: '';
             position: absolute;
-            top: 0;
+            bottom: 0;
             left: 0;
+            width: 0;
+            height: 3px;
+            background: var(--white);
+            transition: width 0.5s ease;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+        }
+
+        .stat-card:hover::before {
             width: 100%;
-            height: 4px;
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
         }
 
         .stat-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 12px 40px var(--shadow);
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--white);
         }
 
         .stat-icon {
             font-size: 3rem;
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
         }
 
         .stat-value {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--primary);
-            font-family: 'Space Mono', monospace;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3rem;
+            font-weight: 900;
             margin-bottom: 0.5rem;
         }
 
         .stat-label {
-            color: var(--text-secondary);
-            font-size: 1rem;
-            font-weight: 500;
+            color: var(--medium-gray);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
         }
 
         .stats-details {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 2rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--dark-gray);
+            padding: 2.5rem;
         }
 
         .stats-details h3 {
-            font-size: 1.5rem;
-            margin-bottom: 1.5rem;
-            color: var(--primary);
-        }
-
-        #faceDetails {
-            display: grid;
-            gap: 1rem;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            margin-bottom: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
         }
 
         .face-detail {
-            padding: 1rem;
-            background: var(--bg-dark);
-            border-radius: 10px;
-            border: 1px solid var(--border);
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 1rem;
         }
 
         .face-detail h4 {
-            color: var(--primary);
+            font-family: 'Orbitron', sans-serif;
             margin-bottom: 0.5rem;
         }
 
@@ -728,11 +699,11 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.9);
             z-index: 1000;
             align-items: center;
             justify-content: center;
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(10px);
         }
 
         .modal.active {
@@ -741,106 +712,154 @@
         }
 
         .modal-content {
-            background: var(--bg-card);
-            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--dark-gray);
             width: 90%;
-            max-width: 500px;
+            max-width: 600px;
             max-height: 90vh;
             overflow-y: auto;
-            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.5);
-            animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 1px solid var(--border);
+            animation: slideUp 0.4s ease;
+            position: relative;
+        }
+
+        .modal-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--white);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
         }
 
         .modal-header {
-            padding: 1.5rem 2rem;
-            border-bottom: 1px solid var(--border);
+            padding: 2rem 2.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
         .modal-header h2 {
+            font-family: 'Orbitron', sans-serif;
             font-size: 1.5rem;
-            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
         }
 
         .modal-close {
-            width: 40px;
-            height: 40px;
+            width: 45px;
+            height: 45px;
             background: transparent;
-            border: none;
-            font-size: 2rem;
-            color: var(--text-secondary);
+            border: 1px solid var(--dark-gray);
+            color: var(--white);
+            font-size: 1.5rem;
             cursor: pointer;
             transition: all 0.3s ease;
-            border-radius: 8px;
         }
 
         .modal-close:hover {
-            background: var(--danger);
-            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--white);
             transform: rotate(90deg);
         }
 
         .modal-body {
-            padding: 2rem;
+            padding: 2.5rem;
         }
 
         .modal-footer {
-            padding: 1.5rem 2rem;
-            border-top: 1px solid var(--border);
+            padding: 2rem 2.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
             gap: 1rem;
             justify-content: flex-end;
         }
 
         .btn-cancel, .btn-save {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 10px;
-            font-weight: 600;
+            padding: 1rem 2rem;
+            border: 2px solid var(--white);
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 1rem;
+            transition: all 0.4s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-size: 0.85rem;
+            position: relative;
+            overflow: hidden;
         }
 
         .btn-cancel {
-            background: var(--bg-dark);
-            color: var(--text-primary);
-            border: 1px solid var(--border);
-        }
-
-        .btn-cancel:hover {
-            background: var(--danger);
-            color: white;
-            border-color: var(--danger);
+            background: transparent;
+            color: var(--white);
         }
 
         .btn-save {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            box-shadow: 0 4px 12px rgba(0, 102, 255, 0.3);
+            background: transparent;
+            color: var(--white);
         }
 
-        .btn-save:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(0, 102, 255, 0.4);
+        .btn-cancel::before, .btn-save::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--white);
+            transition: left 0.4s ease;
+            z-index: -1;
+        }
+
+        .btn-cancel:hover::before, .btn-save:hover::before {
+            left: 0;
+        }
+
+        .btn-cancel:hover, .btn-save:hover {
+            color: var(--black);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
         }
 
         .image-preview {
             margin-top: 1rem;
-            max-width: 100%;
         }
 
         .image-preview img {
             max-width: 100%;
-            border-radius: 10px;
-            border: 1px solid var(--border);
+            border: 1px solid var(--dark-gray);
+        }
+
+        /* === ANIMATIONS === */
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
         }
 
         /* === RESPONSIVE === */
         @media (max-width: 768px) {
+            .wrapper {
+                padding: 0 1.5rem;
+            }
+
             .header-content, .main-nav {
                 flex-direction: column;
                 align-items: stretch;
@@ -859,22 +878,19 @@
             }
 
             .login-container {
-                padding: 2rem 1.5rem;
+                padding: 2.5rem 2rem;
             }
-        }
 
-        /* === ANIMATIONS === */
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        .loading {
-            animation: pulse 1.5s ease-in-out infinite;
+            .range-section {
+                padding: 1.5rem;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Grid overlay -->
+    <div class="grid-overlay"></div>
+
     <!-- Custom Cursor -->
     <div class="cursor"></div>
     <div class="cursor-follower"></div>
@@ -886,9 +902,8 @@
     <div class="login-view" id="loginView">
         <div class="login-container">
             <div class="login-logo">
-                <div class="login-logo-icon">⚡</div>
-                <h1>Stock Câbles Pro</h1>
-                <p>Connexion sécurisée</p>
+                <h1>STOCK CÂBLES</h1>
+                <p>Connexion Sécurisée - RTE</p>
             </div>
 
             <div class="error-message" id="errorMessage">
@@ -913,22 +928,18 @@
 
     <!-- APP VIEW -->
     <div class="app-view" id="appView">
-        <div class="app-container">
+        <div class="wrapper">
             <!-- Header -->
             <header class="main-header">
                 <div class="header-content">
                     <div class="logo-section">
-                        <div class="logo-icon">⚡</div>
-                        <div class="logo-text">
-                            <h1>Stock Câbles</h1>
-                            <p>Gestion des tourets</p>
-                        </div>
+                        <h1>STOCK CÂBLES</h1>
+                        <p>Gestion des Tourets - RTE</p>
                     </div>
                     
                     <div class="header-controls">
                         <div id="clock" class="clock-display">--:--:--</div>
-                        <button id="themeToggle" class="icon-btn">🌙</button>
-                        <button id="logoutBtn" class="icon-btn logout-btn">🚪</button>
+                        <button id="logoutBtn" class="icon-btn">🚪</button>
                     </div>
                 </div>
             </header>
@@ -938,19 +949,19 @@
                 <div class="nav-tabs">
                     <button class="nav-tab active" data-face="P">Face P</button>
                     <button class="nav-tab" data-face="Q">Face Q</button>
-                    <button class="nav-tab" id="statsTab">📊 Statistiques</button>
+                    <button class="nav-tab" id="statsTab">Statistiques</button>
                 </div>
                 
                 <div class="nav-actions">
-                    <button id="addRangeBtn" class="action-btn primary">+ Ajouter Rangée</button>
-                    <button id="exportBtn" class="action-btn secondary">📥 Export CSV</button>
+                    <button id="addRangeBtn" class="action-btn">+ Ajouter Rangée</button>
+                    <button id="exportBtn" class="action-btn">Export CSV</button>
                 </div>
             </nav>
 
             <!-- Search Bar -->
             <div class="search-section">
                 <div class="search-container">
-                    <input type="text" id="searchInput" placeholder="🔍 Rechercher un câble, touret, rangée...">
+                    <input type="text" id="searchInput" placeholder="Rechercher un câble, touret, rangée...">
                 </div>
             </div>
 
@@ -1004,7 +1015,7 @@
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label>Nom</label>
+                    <label>Nom du Câble</label>
                     <input type="text" id="editName" class="form-input">
                 </div>
                 <div class="form-group">
@@ -1025,7 +1036,7 @@
         // FIREBASE INITIALIZATION
         // ========================================
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-        import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
         
         const firebaseConfig = {
             apiKey: "AIzaSyAiZIicItqSQ0kTaCnZu6xiJEgEt7l_nWw",
@@ -1039,15 +1050,10 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         
-        // Make Firebase globally available
         window.db = db;
-        window.firestoreCollection = collection;
         window.firestoreDoc = doc;
         window.firestoreGetDoc = getDoc;
-        window.firestoreGetDocs = getDocs;
         window.firestoreSetDoc = setDoc;
-        window.firestoreUpdateDoc = updateDoc;
-        window.firestoreDeleteDoc = deleteDoc;
         window.firestoreOnSnapshot = onSnapshot;
 
         // ========================================
@@ -1058,7 +1064,6 @@
         const appView = document.getElementById('appView');
         const errorMessage = document.getElementById('errorMessage');
 
-        // Check if already authenticated
         if (sessionStorage.getItem('authenticated') === 'true') {
             showApp();
         }
@@ -1068,7 +1073,6 @@
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
             
-            // Credentials
             if (username === 'benjamin' && password === 'magasin') {
                 sessionStorage.setItem('authenticated', 'true');
                 sessionStorage.setItem('loginTime', new Date().getTime());
@@ -1086,7 +1090,6 @@
             initApp();
         }
 
-        // Logout
         document.getElementById('logoutBtn').addEventListener('click', () => {
             if (confirm('Voulez-vous vraiment vous déconnecter ?')) {
                 sessionStorage.clear();
@@ -1098,18 +1101,120 @@
         // GLOBAL STATE
         // ========================================
         let currentFace = 'P';
-        let stockData = { P: {}, Q: {} };
+        let stockData = {};
         let editContext = null;
+        
+        const initialData = {
+            P: {
+                ranges: [
+                    {
+                        id: 'p-range-1',
+                        name: 'Rangée 1',
+                        tourets: [
+                            { id: 'p1-a', label: 'A', cable: 'AUCUNE DONNÉE', image: '' },
+                            { id: 'p1-b', label: 'B', cable: '2X6', image: '' },
+                            { id: 'p1-c', label: 'C', cable: '14X4', image: '' }
+                        ]
+                    },
+                    {
+                        id: 'p-range-2',
+                        name: 'Rangée 2',
+                        tourets: [
+                            { id: 'p2-a', label: 'A', cable: '7X4', image: '' },
+                            { id: 'p2-b', label: 'B', cable: '2X6', image: '' },
+                            { id: 'p2-c', label: 'C', cable: '14X4', image: '' }
+                        ]
+                    },
+                    {
+                        id: 'p-range-3',
+                        name: 'Rangée 3',
+                        tourets: [
+                            { id: 'p3-a', label: 'A', cable: '2X6', image: '' },
+                            { id: 'p3-b', label: 'B', cable: '10X4', image: '' },
+                            { id: 'p3-c', label: 'C', cable: '7X6', image: '' }
+                        ]
+                    },
+                    {
+                        id: 'p-range-4',
+                        name: 'Rangée 4',
+                        tourets: [
+                            { id: 'p4-a', label: 'A', cable: '19X4', image: '' },
+                            { id: 'p4-b', label: 'B', cable: '19X4', image: '' },
+                            { id: 'p4-c', label: 'C', cable: '2X4', image: '' }
+                        ]
+                    },
+                    {
+                        id: 'p-range-5',
+                        name: 'Rangée 5',
+                        tourets: [
+                            { id: 'p5-a', label: 'A', cable: '2X16', image: '' },
+                            { id: 'p5-b', label: 'B', cable: '4X1.5', image: '' },
+                            { id: 'p5-c', label: 'C', cable: '14X4', image: '' }
+                        ]
+                    }
+                ]
+            },
+            Q: {
+                ranges: [
+                    {
+                        id: 'q-range-1',
+                        name: 'Rangée 1',
+                        tourets: [
+                            { id: 'q1-a', label: 'A', cable: 'crocus 228 100M', image: '' },
+                            { id: 'q1-b', label: 'B', cable: '4X6', image: '' },
+                            { id: 'q1-c', label: 'C', cable: '7X4', image: '' }
+                        ]
+                    },
+                    {
+                        id: 'q-range-2',
+                        name: 'Rangée 2',
+                        tourets: [
+                            { id: 'q2-a', label: 'A', cable: 'crocus 228 106M', image: '' },
+                            { id: 'q2-b', label: 'B', cable: '7X1.5', image: '' },
+                            { id: 'q2-c', label: 'C', cable: '14X4', image: '' }
+                        ]
+                    },
+                    {
+                        id: 'q-range-3',
+                        name: 'Rangée 3',
+                        tourets: [
+                            { id: 'q3-a', label: 'A', cable: '8X16', image: '' },
+                            { id: 'q3-b', label: 'B', cable: '2X6', image: '' },
+                            { id: 'q3-c', label: 'C', cable: '7X6', image: '' }
+                        ]
+                    },
+                    {
+                        id: 'q-range-4',
+                        name: 'Rangée 4',
+                        tourets: [
+                            { id: 'q4-a', label: 'A', cable: '10X4', image: '' },
+                            { id: 'q4-b', label: 'B', cable: '4X4', image: '' },
+                            { id: 'q4-c', label: 'C', cable: '4X4', image: '' }
+                        ]
+                    },
+                    {
+                        id: 'q-range-5',
+                        name: 'Rangée 5',
+                        tourets: [
+                            { id: 'q5-a', label: 'A', cable: '14X4', image: '' },
+                            { id: 'q5-b', label: 'B', cable: '4X6', image: '' },
+                            { id: 'q5-c', label: 'C', cable: 'acome', image: '' }
+                        ]
+                    }
+                ]
+            }
+        };
 
         // ========================================
         // APP INITIALIZATION
         // ========================================
         function initApp() {
             initClock();
-            initTheme();
             initNavigation();
             loadStockData();
             initSearch();
+            initCursor();
+            initParticles();
         }
 
         // ========================================
@@ -1125,26 +1230,6 @@
             }
             updateClock();
             setInterval(updateClock, 1000);
-        }
-
-        // ========================================
-        // THEME
-        // ========================================
-        function initTheme() {
-            const themeToggle = document.getElementById('themeToggle');
-            const savedTheme = localStorage.getItem('theme') || 'dark';
-            
-            if (savedTheme === 'light') {
-                document.body.classList.add('light-theme');
-                themeToggle.textContent = '☀️';
-            }
-
-            themeToggle.addEventListener('click', () => {
-                document.body.classList.toggle('light-theme');
-                const isLight = document.body.classList.contains('light-theme');
-                themeToggle.textContent = isLight ? '☀️' : '🌙';
-                localStorage.setItem('theme', isLight ? 'light' : 'dark');
-            });
         }
 
         // ========================================
@@ -1178,10 +1263,7 @@
                 renderStats();
             });
 
-            // Add Range Button
             document.getElementById('addRangeBtn').addEventListener('click', addRange);
-            
-            // Export Button
             document.getElementById('exportBtn').addEventListener('click', exportToCSV);
         }
 
@@ -1190,30 +1272,51 @@
         // ========================================
         async function loadStockData() {
             try {
-                const facesRef = window.firestoreCollection(window.db, 'faces');
-                const snapshot = await window.firestoreGetDocs(facesRef);
+                const docRefP = window.firestoreDoc(window.db, 'stock', 'P');
+                const docSnapP = await window.firestoreGetDoc(docRefP);
                 
-                stockData = { P: {}, Q: {} };
+                const docRefQ = window.firestoreDoc(window.db, 'stock', 'Q');
+                const docSnapQ = await window.firestoreGetDoc(docRefQ);
                 
-                snapshot.forEach(doc => {
-                    const face = doc.id;
-                    if (face === 'P' || face === 'Q') {
-                        stockData[face] = doc.data();
+                if (!docSnapP.exists() || !docSnapQ.exists()) {
+                    console.log("Base vide → création des données initiales");
+                    await window.firestoreSetDoc(window.firestoreDoc(window.db, 'stock', 'P'), initialData.P);
+                    await window.firestoreSetDoc(window.firestoreDoc(window.db, 'stock', 'Q'), initialData.Q);
+                    stockData = initialData;
+                } else {
+                    stockData.P = docSnapP.data();
+                    stockData.Q = docSnapQ.data();
+                }
+                
+                renderStock();
+                updateStats();
+                
+                window.firestoreOnSnapshot(window.firestoreDoc(window.db, 'stock', 'P'), (docSnap) => {
+                    if (docSnap.exists()) {
+                        stockData.P = docSnap.data();
+                        renderStock();
+                        updateStats();
+                    }
+                });
+
+                window.firestoreOnSnapshot(window.firestoreDoc(window.db, 'stock', 'Q'), (docSnap) => {
+                    if (docSnap.exists()) {
+                        stockData.Q = docSnap.data();
+                        renderStock();
+                        updateStats();
                     }
                 });
                 
-                renderStock();
             } catch (error) {
                 console.error('Erreur chargement:', error);
             }
         }
 
-        async function saveToFirestore() {
+        async function saveToFirestore(face) {
             try {
-                for (const face of ['P', 'Q']) {
-                    const faceRef = window.firestoreDoc(window.db, 'faces', face);
-                    await window.firestoreSetDoc(faceRef, stockData[face]);
-                }
+                await window.firestoreSetDoc(window.firestoreDoc(window.db, 'stock', face), stockData[face]);
+                console.log(`Face ${face} sauvegardée`);
+                updateStats();
             } catch (error) {
                 console.error('Erreur sauvegarde:', error);
             }
@@ -1224,61 +1327,62 @@
         // ========================================
         function renderStock() {
             const container = document.getElementById('stockContainer');
-            const data = stockData[currentFace] || {};
+            const face = stockData[currentFace];
             
             container.innerHTML = '';
             
-            const ranges = Object.keys(data).sort();
-            
-            if (ranges.length === 0) {
+            if (!face || !face.ranges || face.ranges.length === 0) {
                 container.innerHTML = `
-                    <div style="text-align: center; padding: 4rem; color: var(--text-secondary);">
-                        <div style="font-size: 4rem; margin-bottom: 1rem;">📦</div>
-                        <h3>Aucune rangée pour la Face ${currentFace}</h3>
-                        <p style="margin-top: 0.5rem;">Cliquez sur "+ Ajouter Rangée" pour commencer</p>
+                    <div style="text-align: center; padding: 6rem; color: var(--medium-gray);">
+                        <div style="font-size: 5rem; margin-bottom: 2rem; opacity: 0.3;">📦</div>
+                        <h3 style="font-family: 'Orbitron', sans-serif; font-size: 2rem; text-transform: uppercase; letter-spacing: 0.1em;">Aucune Rangée</h3>
+                        <p style="margin-top: 1rem; font-size: 1rem;">Face ${currentFace}</p>
                     </div>
                 `;
                 return;
             }
             
-            ranges.forEach(rangeName => {
-                const tourets = data[rangeName] || [];
+            face.ranges.forEach((range, rangeIndex) => {
                 const section = document.createElement('div');
                 section.className = 'range-section';
+                section.style.animationDelay = `${rangeIndex * 0.1}s`;
                 
                 section.innerHTML = `
                     <div class="range-header">
-                        <h3 class="range-title">${rangeName}</h3>
+                        <h3 class="range-title">${range.name}</h3>
                         <div class="range-actions">
-                            <button class="range-btn" onclick="addTouret('${rangeName}')">+ Touret</button>
-                            <button class="range-btn" onclick="editRange('${rangeName}')">✏️ Éditer</button>
-                            <button class="range-btn delete" onclick="deleteRange('${rangeName}')">🗑️ Supprimer</button>
+                            <button class="range-btn" onclick="addTouret(${rangeIndex})">+ Touret</button>
+                            <button class="range-btn" onclick="editRangeName(${rangeIndex})">✏️</button>
+                            <button class="range-btn" onclick="deleteRange(${rangeIndex})">🗑️</button>
                         </div>
                     </div>
-                    <div class="touret-grid" id="grid-${rangeName}"></div>
+                    <div class="touret-grid" id="grid-${rangeIndex}"></div>
                 `;
                 
                 container.appendChild(section);
                 
-                const grid = document.getElementById(`grid-${rangeName}`);
+                const grid = document.getElementById(`grid-${rangeIndex}`);
                 
-                if (tourets.length === 0) {
-                    grid.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 2rem;">Aucun touret dans cette rangée</p>';
+                if (!range.tourets || range.tourets.length === 0) {
+                    grid.innerHTML = '<p style="color: var(--medium-gray); text-align: center; padding: 3rem; font-size: 0.9rem;">Aucun touret</p>';
                 } else {
-                    tourets.forEach((touret, index) => {
+                    range.tourets.forEach((touret, index) => {
                         const item = document.createElement('div');
                         item.className = 'touret-item';
                         
+                        const cableName = touret.cable || 'Vide';
+                        const displayLabel = touret.label ? `${touret.label} - ` : '';
+                        
                         item.innerHTML = `
                             <div class="touret-header">
-                                <div class="touret-name">${touret.name}</div>
+                                <div class="touret-name">${displayLabel}${cableName}</div>
                                 <div class="touret-actions">
-                                    <button class="touret-btn edit" onclick="editTouret('${rangeName}', ${index})">✏️</button>
-                                    <button class="touret-btn delete" onclick="deleteTouret('${rangeName}', ${index})">🗑️</button>
+                                    <button class="touret-btn" onclick="editTouret(${rangeIndex}, ${index})">✏️</button>
+                                    <button class="touret-btn" onclick="deleteTouret(${rangeIndex}, ${index})">🗑️</button>
                                 </div>
                             </div>
                             ${touret.image ? 
-                                `<img src="${touret.image}" class="touret-image" alt="${touret.name}">` :
+                                `<img src="${touret.image}" class="touret-image" alt="${cableName}">` :
                                 `<div class="touret-placeholder">📦</div>`
                             }
                         `;
@@ -1293,65 +1397,74 @@
         // CRUD OPERATIONS
         // ========================================
         window.addRange = async function() {
-            const name = prompt('Nom de la nouvelle rangée:');
+            const name = prompt('Nom de la nouvelle rangée:', `Rangée ${stockData[currentFace].ranges.length + 1}`);
             if (!name) return;
             
-            if (stockData[currentFace][name]) {
-                alert('Cette rangée existe déjà!');
-                return;
-            }
+            const newRange = {
+                id: `${currentFace.toLowerCase()}-range-${Date.now()}`,
+                name: name.trim(),
+                tourets: []
+            };
             
-            stockData[currentFace][name] = [];
-            await saveToFirestore();
+            stockData[currentFace].ranges.push(newRange);
+            await saveToFirestore(currentFace);
             renderStock();
         };
 
-        window.editRange = async function(oldName) {
+        window.editRangeName = async function(rangeIndex) {
+            const oldName = stockData[currentFace].ranges[rangeIndex].name;
             const newName = prompt('Nouveau nom:', oldName);
             if (!newName || newName === oldName) return;
             
-            if (stockData[currentFace][newName]) {
-                alert('Ce nom existe déjà!');
-                return;
-            }
-            
-            stockData[currentFace][newName] = stockData[currentFace][oldName];
-            delete stockData[currentFace][oldName];
-            await saveToFirestore();
+            stockData[currentFace].ranges[rangeIndex].name = newName.trim();
+            await saveToFirestore(currentFace);
             renderStock();
         };
 
-        window.deleteRange = async function(name) {
-            if (!confirm(`Supprimer la rangée "${name}" et tous ses tourets?`)) return;
+        window.deleteRange = async function(rangeIndex) {
+            const rangeName = stockData[currentFace].ranges[rangeIndex].name;
+            if (!confirm(`Supprimer la rangée "${rangeName}" ?`)) return;
             
-            delete stockData[currentFace][name];
-            await saveToFirestore();
+            stockData[currentFace].ranges.splice(rangeIndex, 1);
+            await saveToFirestore(currentFace);
             renderStock();
         };
 
-        window.addTouret = function(rangeName) {
-            editContext = { type: 'add', rangeName };
-            openModal('Ajouter un touret');
+        window.addTouret = function(rangeIndex) {
+            const label = prompt('Label du touret (A, B, C...):', '');
+            if (!label) return;
+            
+            editContext = { type: 'add', rangeIndex, touret: { 
+                id: `t-${Date.now()}`,
+                label: label.trim().toUpperCase(), 
+                cable: '', 
+                image: '' 
+            }};
+            
+            document.getElementById('editName').value = '';
+            document.getElementById('imagePreview').innerHTML = '';
+            openModal('Ajouter un Touret');
         };
 
-        window.editTouret = function(rangeName, index) {
-            const touret = stockData[currentFace][rangeName][index];
-            editContext = { type: 'edit', rangeName, index };
+        window.editTouret = function(rangeIndex, index) {
+            const touret = stockData[currentFace].ranges[rangeIndex].tourets[index];
+            editContext = { type: 'edit', rangeIndex, index };
             
-            document.getElementById('editName').value = touret.name;
+            document.getElementById('editName').value = touret.cable || '';
             if (touret.image) {
                 document.getElementById('imagePreview').innerHTML = `<img src="${touret.image}" alt="Preview">`;
             }
             
-            openModal('Éditer le touret');
+            openModal(`Éditer ${touret.label}`);
         };
 
-        window.deleteTouret = async function(rangeName, index) {
-            const touret = stockData[currentFace][rangeName][index];
-            if (!confirm(`Supprimer "${touret.name}"?`)) return;
+        window.deleteTouret = async function(rangeIndex, index) {
+            const touret = stockData[currentFace].ranges[rangeIndex].tourets[index];
+            const name = touret.label ? `${touret.label} - ${touret.cable}` : touret.cable;
+            if (!confirm(`Supprimer "${name}" ?`)) return;
             
-            stockData[currentFace][rangeName].splice(index, 1);
-            await saveToFirestore();
+            stockData[currentFace].ranges[rangeIndex].tourets.splice(index, 1);
+            await saveToFirestore(currentFace);
             renderStock();
         };
 
@@ -1372,31 +1485,25 @@
         };
 
         window.saveEdit = async function() {
-            const name = document.getElementById('editName').value.trim();
-            if (!name) {
-                alert('Le nom est requis!');
-                return;
-            }
+            const cable = document.getElementById('editName').value.trim();
             
             const imageFile = document.getElementById('editImage').files[0];
-            let imageData = null;
-            
-            if (imageFile) {
-                imageData = await fileToBase64(imageFile);
-            }
+            const imagePreview = document.getElementById('imagePreview').querySelector('img');
+            const imageData = imageFile ? await fileToBase64(imageFile) : (imagePreview ? imagePreview.src : null);
             
             if (editContext.type === 'add') {
-                const touret = { name };
+                const touret = editContext.touret;
+                touret.cable = cable;
                 if (imageData) touret.image = imageData;
-                stockData[currentFace][editContext.rangeName].push(touret);
+                stockData[currentFace].ranges[editContext.rangeIndex].tourets.push(touret);
             } else {
-                stockData[currentFace][editContext.rangeName][editContext.index].name = name;
+                stockData[currentFace].ranges[editContext.rangeIndex].tourets[editContext.index].cable = cable;
                 if (imageData) {
-                    stockData[currentFace][editContext.rangeName][editContext.index].image = imageData;
+                    stockData[currentFace].ranges[editContext.rangeIndex].tourets[editContext.index].image = imageData;
                 }
             }
             
-            await saveToFirestore();
+            await saveToFirestore(currentFace);
             closeModal();
             renderStock();
         };
@@ -1409,7 +1516,6 @@
             });
         }
 
-        // Image preview
         document.getElementById('editImage').addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (file) {
@@ -1434,7 +1540,7 @@
                     
                     tourets.forEach(touret => {
                         const touretName = touret.querySelector('.touret-name').textContent.toLowerCase();
-                        const matches = touretName.includes(query);
+                        const matches = touretName.includes(query) || rangeName.includes(query);
                         touret.style.display = query === '' || matches ? 'block' : 'none';
                         if (matches) hasMatch = true;
                     });
@@ -1450,184 +1556,202 @@
         function renderStats() {
             let totalTourets = 0;
             let totalRanges = 0;
+            let lowStock = 0;
             
             for (const face of ['P', 'Q']) {
-                const ranges = Object.keys(stockData[face] || {});
-                totalRanges += ranges.length;
-                ranges.forEach(range => {
-                    totalTourets += (stockData[face][range] || []).length;
-                });
+                if (stockData[face] && stockData[face].ranges) {
+                    totalRanges += stockData[face].ranges.length;
+                    stockData[face].ranges.forEach(range => {
+                        totalTourets += range.tourets.length;
+                        range.tourets.forEach(touret => {
+                            if (!touret.cable || touret.cable === 'AUCUNE DONNÉE' || touret.cable === '') {
+                                lowStock++;
+                            }
+                        });
+                    });
+                }
             }
             
             document.getElementById('totalTourets').textContent = totalTourets;
             document.getElementById('totalRanges').textContent = totalRanges;
-            document.getElementById('lowStock').textContent = '0'; // Placeholder
+            document.getElementById('lowStock').textContent = lowStock;
             
             const now = new Date();
             document.getElementById('lastUpdate').textContent = 
                 `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
             
-            // Face details
             const faceDetails = document.getElementById('faceDetails');
             faceDetails.innerHTML = '';
             
             for (const face of ['P', 'Q']) {
-                const ranges = Object.keys(stockData[face] || {});
-                let faceTourets = 0;
-                ranges.forEach(range => {
-                    faceTourets += (stockData[face][range] || []).length;
-                });
-                
-                const detail = document.createElement('div');
-                detail.className = 'face-detail';
-                detail.innerHTML = `
-                    <h4>Face ${face}</h4>
-                    <p>Rangées: ${ranges.length}</p>
-                    <p>Tourets: ${faceTourets}</p>
-                `;
-                faceDetails.appendChild(detail);
+                if (stockData[face] && stockData[face].ranges) {
+                    const ranges = stockData[face].ranges.length;
+                    let faceTourets = 0;
+                    stockData[face].ranges.forEach(range => {
+                        faceTourets += range.tourets.length;
+                    });
+                    
+                    const detail = document.createElement('div');
+                    detail.className = 'face-detail';
+                    detail.innerHTML = `
+                        <h4>Face ${face}</h4>
+                        <p>Rangées: ${ranges} | Tourets: ${faceTourets}</p>
+                    `;
+                    faceDetails.appendChild(detail);
+                }
             }
+        }
+        
+        function updateStats() {
+            renderStats();
         }
 
         // ========================================
         // EXPORT CSV
         // ========================================
         window.exportToCSV = function() {
-            let csv = 'Face,Rangée,Touret\n';
+            let csv = 'Face,Rangée,Touret,Câble,Image\n';
             
             for (const face of ['P', 'Q']) {
-                const ranges = Object.keys(stockData[face] || {});
-                ranges.forEach(range => {
-                    const tourets = stockData[face][range] || [];
-                    tourets.forEach(touret => {
-                        csv += `${face},${range},${touret.name}\n`;
+                if (stockData[face] && stockData[face].ranges) {
+                    stockData[face].ranges.forEach(range => {
+                        range.tourets.forEach(touret => {
+                            const cable = (touret.cable || 'Vide').replace(/"/g, '""');
+                            const hasImage = touret.image ? 'Oui' : 'Non';
+                            csv += `"${face}","${range.name}","${touret.label}","${cable}","${hasImage}"\n`;
+                        });
                     });
-                });
+                }
             }
             
-            const blob = new Blob([csv], { type: 'text/csv' });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
             a.download = `stock-cables-${new Date().toISOString().split('T')[0]}.csv`;
             a.click();
+            URL.revokeObjectURL(url);
         };
-    </script>
 
-    <!-- Cursor & Particles -->
-    <script>
-        // Custom Cursor
-        const cursor = document.querySelector('.cursor');
-        const follower = document.querySelector('.cursor-follower');
-        let mouseX = 0, mouseY = 0;
-        let cursorX = 0, cursorY = 0;
-        let followerX = 0, followerY = 0;
+        // ========================================
+        // CURSOR
+        // ========================================
+        function initCursor() {
+            const cursor = document.querySelector('.cursor');
+            const follower = document.querySelector('.cursor-follower');
+            let mouseX = 0, mouseY = 0;
+            let cursorX = 0, cursorY = 0;
+            let followerX = 0, followerY = 0;
 
-        document.addEventListener('mousemove', (e) => {
-            mouseX = e.clientX;
-            mouseY = e.clientY;
-        });
-
-        function animateCursor() {
-            const speed = 0.2;
-            const followerSpeed = 0.12;
-
-            cursorX += (mouseX - cursorX) * speed;
-            cursorY += (mouseY - cursorY) * speed;
-            followerX += (mouseX - followerX) * followerSpeed;
-            followerY += (mouseY - followerY) * followerSpeed;
-
-            cursor.style.transform = `translate(${cursorX}px, ${cursorY}px)`;
-            follower.style.transform = `translate(${followerX - 16}px, ${followerY - 16}px)`;
-
-            requestAnimationFrame(animateCursor);
-        }
-        animateCursor();
-
-        // Cursor hover effects
-        document.addEventListener('mouseenter', (e) => {
-            if (e.target.matches('button, a, input, .touret-item, .nav-tab, .action-btn')) {
-                follower.classList.add('expand');
-            }
-        }, true);
-        
-        document.addEventListener('mouseleave', (e) => {
-            if (e.target.matches('button, a, input, .touret-item, .nav-tab, .action-btn')) {
-                follower.classList.remove('expand');
-            }
-        }, true);
-
-        // Particles
-        const canvas = document.getElementById('particles');
-        const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-
-        const particles = [];
-        const particleCount = 60;
-
-        class Particle {
-            constructor() {
-                this.x = Math.random() * canvas.width;
-                this.y = Math.random() * canvas.height;
-                this.size = Math.random() * 2 + 1;
-                this.speedX = (Math.random() - 0.5) * 0.6;
-                this.speedY = (Math.random() - 0.5) * 0.6;
-                this.opacity = Math.random() * 0.5 + 0.2;
-            }
-
-            update() {
-                this.x += this.speedX;
-                this.y += this.speedY;
-                if (this.x > canvas.width) this.x = 0;
-                if (this.x < 0) this.x = canvas.width;
-                if (this.y > canvas.height) this.y = 0;
-                if (this.y < 0) this.y = canvas.height;
-            }
-
-            draw() {
-                ctx.fillStyle = `rgba(0, 102, 255, ${this.opacity})`;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        }
-
-        for (let i = 0; i < particleCount; i++) {
-            particles.push(new Particle());
-        }
-
-        function animateParticles() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            particles.forEach(particle => {
-                particle.update();
-                particle.draw();
+            document.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
             });
 
-            particles.forEach((a, i) => {
-                particles.slice(i + 1).forEach(b => {
-                    const dx = a.x - b.x;
-                    const dy = a.y - b.y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-                    if (distance < 120) {
-                        ctx.strokeStyle = `rgba(0, 102, 255, ${0.15 * (1 - distance / 120)})`;
-                        ctx.lineWidth = 0.5;
-                        ctx.beginPath();
-                        ctx.moveTo(a.x, a.y);
-                        ctx.lineTo(b.x, b.y);
-                        ctx.stroke();
-                    }
-                });
-            });
+            function animateCursor() {
+                const speed = 0.2;
+                const followerSpeed = 0.12;
 
-            requestAnimationFrame(animateParticles);
+                cursorX += (mouseX - cursorX) * speed;
+                cursorY += (mouseY - cursorY) * speed;
+                followerX += (mouseX - followerX) * followerSpeed;
+                followerY += (mouseY - followerY) * followerSpeed;
+
+                cursor.style.transform = `translate(${cursorX}px, ${cursorY}px)`;
+                follower.style.transform = `translate(${followerX - 16}px, ${followerY - 16}px)`;
+
+                requestAnimationFrame(animateCursor);
+            }
+            animateCursor();
+
+            document.addEventListener('mouseenter', (e) => {
+                if (e.target.matches('button, a, input, .touret-item, .range-section')) {
+                    follower.classList.add('expand');
+                }
+            }, true);
+            
+            document.addEventListener('mouseleave', (e) => {
+                if (e.target.matches('button, a, input, .touret-item, .range-section')) {
+                    follower.classList.remove('expand');
+                }
+            }, true);
         }
-        animateParticles();
 
-        window.addEventListener('resize', () => {
+        // ========================================
+        // PARTICLES
+        // ========================================
+        function initParticles() {
+            const canvas = document.getElementById('particles');
+            const ctx = canvas.getContext('2d');
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
-        });
+
+            window.addEventListener('resize', () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            });
+
+            class ParticlePoint {
+                constructor() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.size = Math.random() * 3 + 1;
+                    this.speedX = Math.random() * 2 - 1;
+                    this.speedY = Math.random() * 2 - 1;
+                }
+
+                move() {
+                    this.x += this.speedX;
+                    this.y += this.speedY;
+                    if (this.x > canvas.width || this.x < 0) this.speedX = -this.speedX;
+                    if (this.y > canvas.height || this.y < 0) this.speedY = -this.speedY;
+                }
+
+                render() {
+                    ctx.fillStyle = '#ffffff';
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = '#ffffff';
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            const points = [];
+            for (let i = 0; i < 80; i++) {
+                points.push(new ParticlePoint());
+            }
+
+            function linkPoints() {
+                for (let i = 0; i < points.length; i++) {
+                    for (let j = i + 1; j < points.length; j++) {
+                        const dx = points[i].x - points[j].x;
+                        const dy = points[i].y - points[j].y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist < 150) {
+                            const opacity = 0.15 * (1 - dist / 150);
+                            ctx.strokeStyle = `rgba(255, 255, 255, ${opacity})`;
+                            ctx.lineWidth = 0.5;
+                            ctx.beginPath();
+                            ctx.moveTo(points[i].x, points[i].y);
+                            ctx.lineTo(points[j].x, points[j].y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+            }
+
+            function loop() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                for (let i = 0; i < points.length; i++) {
+                    points[i].move();
+                    points[i].render();
+                }
+                linkPoints();
+                requestAnimationFrame(loop);
+            }
+            loop();
+        }
     </script>
 </body>
 </html>
