@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion Stock Câbles - Magasin</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Protection de sécurité -->
+    <script>
+        if (sessionStorage.getItem('authenticated') !== 'true') {
+            window.location.href = 'login.html';
+        }
+        
+        const loginTime = sessionStorage.getItem('loginTime');
+        const currentTime = new Date().getTime();
+        const eightHours = 8 * 60 * 60 * 1000;
+        
+        if (loginTime && (currentTime - loginTime) > eightHours) {
+            sessionStorage.removeItem('authenticated');
+            sessionStorage.removeItem('loginTime');
+            alert('Votre session a expiré. Veuillez vous reconnecter.');
+            window.location.href = 'login.html';
+        }
+    </script>
+    
+    <div class="app-container">
+        <!-- Header -->
+        <header class="main-header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="logo-icon">⚡</div>
+                    <div class="logo-text">
+                        <h1>Stock Câbles</h1>
+                        <p>Gestion des tourets</p>
+                    </div>
+                </div>
+                
+                <div class="header-controls">
+                    <div id="clock" class="clock-display">--:--:--</div>
+                    <button id="themeToggle" class="icon-btn">🌙</button>
+                    <button id="logoutBtn" class="icon-btn logout-btn" onclick="logout()">🚪</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="main-nav">
+            <div class="nav-tabs">
+                <button class="nav-tab active" data-face="P">Face P</button>
+                <button class="nav-tab" data-face="Q">Face Q</button>
+                <button class="nav-tab" id="statsTab">📊 Statistiques</button>
+            </div>
+            
+            <div class="nav-actions">
+                <button id="addRangeBtn" class="action-btn primary">+ Ajouter Rangée</button>
+                <button id="exportBtn" class="action-btn secondary" onclick="exportToCSV()">📥 Export CSV</button>
+            </div>
+        </nav>
+
+        <!-- Search Bar -->
+        <div class="search-section">
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="🔍 Rechercher un câble, touret, rangée..." onkeyup="filterMaterials()">
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Stock View -->
+            <div id="stockView" class="stock-view">
+                <div id="stockContainer"></div>
+            </div>
+
+            <!-- Stats View -->
+            <div id="statsView" class="stats-view" style="display: none;">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">📦</div>
+                        <div class="stat-value" id="totalTourets">0</div>
+                        <div class="stat-label">Total Tourets</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-value" id="totalRanges">0</div>
+                        <div class="stat-label">Total Rangées</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⚠️</div>
+                        <div class="stat-value" id="lowStock">0</div>
+                        <div class="stat-label">Stock Faible</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🔄</div>
+                        <div class="stat-value" id="lastUpdate">--:--</div>
+                        <div class="stat-label">Dernière MAJ</div>
+                    </div>
+                </div>
+                
+                <div class="stats-details">
+                    <h3>Détails par Face</h3>
+                    <div id="faceDetails"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal pour éditer/ajouter -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Éditer</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Nom</label>
+                    <input type="text" id="editName" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label>Image (optionnel)</label>
+                    <input type="file" id="editImage" accept="image/*" class="form-input">
+                    <div id="imagePreview" class="image-preview"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="closeModal()">Annuler</button>
+                <button class="btn-save" onclick="saveEdit()">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fonction de déconnexion -->
+    <script>
+        function logout() {
+            if (confirm('Voulez-vous vraiment vous déconnecter ?')) {
+                sessionStorage.removeItem('authenticated');
+                sessionStorage.removeItem('loginTime');
+                window.location.href = 'login.html';
+            }
+        }
+    </script>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+      import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
+      
+      const firebaseConfig = {
+        apiKey: "AIzaSyAiZIicItqSQ0kTaCnZu6xiJEgEt7l_nWw",
+        authDomain: "magasin-462fb.firebaseapp.com",
+        databaseURL: "https://magasin-462fb-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "magasin-462fb",
+        storageBucket: "magasin-462fb.firebasestorage.app",
+        messagingSenderId: "653350272436",
+        appId: "1:653350272436:web:0c5f7c9481d3d7c98586e1"
+      };
+      
+      const app = initializeApp(firebaseConfig);
+      const db = getDatabase(app);
+      
+      window.firebaseDB = db;
+      window.firebaseRef = ref;
+      window.firebaseOnValue = onValue;
+      window.firebaseSet = set;
+      
+      console.log("Firebase initialisé !");
+      
+      import('./script.js');
+    </script>
+</body>
+</html>
